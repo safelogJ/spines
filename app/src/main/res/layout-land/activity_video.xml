@@ -34,59 +34,59 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/innerFielder"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toTopOf="@+id/stopServiceBtn"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/stopServiceBtn"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/youtubeButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:layout_marginEnd="32dp"
-                android:contentDescription="@string/youtube_button"
-                android:src="@drawable/youtube_activity_48px"
-                app:backgroundTint="@color/green_600"
-                app:elevation="3dp"
-                app:fabSize="mini"
-                app:layout_constraintEnd_toStartOf="@+id/batteryButton"
-                app:layout_constraintTop_toTopOf="parent"
-                app:rippleColor="@color/green_100"
-                app:tint="@color/white" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/batteryButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="32dp"
                 android:layout_marginTop="32dp"
-                android:layout_marginEnd="32dp"
                 android:contentDescription="@string/button_battery"
                 android:src="@drawable/battery_button"
                 app:backgroundTint="@color/black3"
                 app:elevation="3dp"
                 app:fabSize="mini"
-                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:rippleColor="@color/light_gray"
+                app:tint="@color/white" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/youtubeButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="32dp"
+                android:layout_marginTop="32dp"
+                android:contentDescription="@string/youtube_button"
+                android:src="@drawable/youtube_activity_48px"
+                app:backgroundTint="@color/green_600"
+                app:elevation="3dp"
+                app:fabSize="mini"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/batteryButton"
+                app:rippleColor="@color/green_100"
                 app:tint="@color/white" />
 
             <androidx.core.widget.NestedScrollView
                 android:id="@+id/fielder"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="32dp"
+                android:layout_marginStart="32dp"
+                android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
                 android:background="@color/light_gray"
                 android:padding="16dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/batteryButton">
+                app:layout_constraintStart_toEndOf="@+id/batteryButton"
+                app:layout_constraintTop_toTopOf="parent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -210,9 +210,7 @@
             android:id="@+id/stopServiceBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
             android:layout_marginEnd="32dp"
-            android:layout_marginBottom="32dp"
             android:clickable="true"
             android:contentDescription="@string/record_button"
             app:backgroundTint="@color/redA400"
@@ -220,7 +218,7 @@
             app:fabSize="mini"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:rippleColor="@color/redA200"
             app:srcCompat="@drawable/stop_circle_48px"
             app:tint="@color/redA400" />

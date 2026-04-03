@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -131,6 +132,7 @@ public class VideoActivity extends AppCompatActivity {
         });
 
         mBinding.batteryButton.setOnClickListener(view -> fixBattery());
+        mBinding.youtubeButton.setOnClickListener(view -> openYoutubeLink());
         powerManager = controller.getPowerManager();
         btnBackColorGreen = controller.getBtnBackColorGreen();
         btnBackColorBlack = controller.getBtnBackColorBlack();
@@ -256,5 +258,15 @@ public class VideoActivity extends AppCompatActivity {
         controllerCompat.setAppearanceLightStatusBars(false);
         controllerCompat.setAppearanceLightNavigationBars(false);
         getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.black));
+    }
+
+    private void openYoutubeLink() {
+        try {
+            Uri webpage = Uri.parse("https://www.youtube.com/watch?v=eVcEH2mbUHk&list=PL5Ch75WcmOXSz-TVd8ihTaQO3eE4FP1MI&index=1");
+            Intent intent = new Intent(Intent.ACTION_VIEW, webpage);
+            startActivity(intent);
+        } catch (Exception e) {
+            //
+        }
     }
 }

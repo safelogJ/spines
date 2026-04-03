@@ -5,6 +5,7 @@
     <string name="notification_text">Don\'t remove this notification.</string>
     <string name="permission_denied">Permission required.</string>
     <string name="record_button">Start and Stop record.</string>
+    <string name="youtube_button">Youtube.</string>
     <string name="button_battery">Battery button.</string>
     <string name="yandex_email">video@yandex.ru</string>
     <string name="yandex_email_help">яндекс почта отправителя видео</string>
