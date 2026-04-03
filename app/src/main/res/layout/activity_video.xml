@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".VideoActivity">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#000000"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.camera.view.PreviewView
+            android:id="@+id/viewFinder"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/inner"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/innerFielder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toTopOf="@+id/stopServiceBtn"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/batteryButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:layout_marginEnd="32dp"
+                android:contentDescription="@string/button_battery"
+                android:src="@drawable/battery_button"
+                app:backgroundTint="@color/black3"
+                app:elevation="3dp"
+                app:fabSize="mini"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:rippleColor="@color/light_gray"
+                app:tint="@color/white" />
+
+            <androidx.core.widget.NestedScrollView
+                android:id="@+id/fielder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="32dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:background="@color/light_gray"
+                android:padding="16dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/batteryButton">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/yandexMailInputLayout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:hint="@string/yandex_email"
+
+
+                        android:textColorHint="@color/gray400"
+                        app:helperTextTextColor="@color/green_a700"
+                        app:hintTextColor="@color/text_input_hint_color"
+                        app:boxStrokeColor="@color/text_input_stroke_color"
+                        app:boxStrokeWidthFocused="2dp"
+                        app:boxStrokeWidth="1dp"
+                        app:errorEnabled="true"
+
+                        app:endIconMode="password_toggle"
+                        app:helperText="@string/yandex_email_help">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/yandexMailEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPassword" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/yandexAppPassInputLayout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:hint="@string/yandex_app_password"
+
+
+                        android:textColorHint="@color/gray400"
+                        app:helperTextTextColor="@color/green_a700"
+                        app:hintTextColor="@color/text_input_hint_color"
+                        app:boxStrokeColor="@color/text_input_stroke_color"
+                        app:boxStrokeWidthFocused="2dp"
+                        app:boxStrokeWidth="1dp"
+                        app:errorEnabled="true"
+
+                        app:endIconMode="password_toggle"
+                        app:helperText="@string/yandex_app_password_help">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/yandexAppPassEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPassword" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tgTokenInputLayout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:hint="@string/tg_bot_token"
+
+
+                        android:textColorHint="@color/gray400"
+                        app:helperTextTextColor="@color/green_a700"
+                        app:hintTextColor="@color/text_input_hint_color"
+                        app:boxStrokeColor="@color/text_input_stroke_color"
+                        app:boxStrokeWidthFocused="2dp"
+                        app:boxStrokeWidth="1dp"
+                        app:errorEnabled="true"
+
+                        app:endIconMode="password_toggle"
+                        app:helperText="@string/tg_bot_token_help">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/tgTokenEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPassword" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tgIdInputLayout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="24dp"
+                        android:hint="@string/tg_user_id"
+
+
+                        android:textColorHint="@color/gray400"
+                        app:helperTextTextColor="@color/green_a700"
+                        app:hintTextColor="@color/text_input_hint_color"
+                        app:boxStrokeColor="@color/text_input_stroke_color"
+                        app:boxStrokeWidthFocused="2dp"
+                        app:boxStrokeWidth="1dp"
+                        app:errorEnabled="true"
+
+                        app:endIconMode="password_toggle"
+                        app:helperText="@string/tg_user_id_help">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/tgIdEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPassword" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/stopServiceBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:layout_marginBottom="32dp"
+            android:clickable="true"
+            android:contentDescription="@string/record_button"
+            app:backgroundTint="@color/redA400"
+            app:elevation="3dp"
+            app:fabSize="mini"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:rippleColor="@color/redA200"
+            app:srcCompat="@drawable/stop_circle_48px"
+            app:tint="@color/redA400" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

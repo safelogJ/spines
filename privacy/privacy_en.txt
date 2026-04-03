@@ -1,0 +1,87 @@
+Privacy Policy
+Last updated: April 3, 2026
+
+This Privacy Policy describes our principles and procedures for collecting
+and using your information when you use the Service,
+and informs you of your privacy rights and how the law protects you.
+
+Interpretation and Definitions:
+Interpretation:
+Capitalized words have the meanings defined in the following terms.
+The following definitions have the same meaning regardless of whether they appear in the singular or plural.
+
+Definitions:
+For the purposes of this Privacy Policy:
+
+App means Spines, the software provided by the Company.
+The Company (referred to in this Agreement as "the Company," "We," "Our," or "Ours") is Evgenii Chekmazov, a sole proprietor.
+Country means Russia
+Device means any device that can access the Service,
+such as a computer, mobile phone, or digital tablet.
+Personal data means any information relating to an identified or identifiable individual.
+Service means the Application.
+Usage data means data collected automatically, either generated during your use of the Service, or from the Service infrastructure itself (e.g., the duration of a page visit).
+You means the individual accessing or using the Service,
+or the company or other legal entity on whose behalf such individual accesses or uses the Service,
+as appropriate.
+
+Collection and use of your personal data:
+Types of data collected:
+
+Personal data:
+When using our Application, you may provide information necessary for the video sharing feature to function.
+Authorization data for third-party services: Telegram bot token, Telegram user ID,
+Yandex email address, and application password for WebDAV access.
+This data is entered manually by you and is required solely for the automatic sharing of video files.
+
+Media Files:
+The app records video with audio (background video recording).
+These files are stored locally on your device in a public folder at /Android/data/com.safelogj.spines/files/video/.
+
+Usage Data:
+Usage data may include technical information about the device's state
+to ensure stable background recording and file uploads.
+Such as internet access (for uploading files) and whether the screen is on (to prevent the system from stopping recording when the screen is off).
+
+Storage of Your Personal Data:
+Local Storage:
+Video recordings are stored on your device in a public folder at /Android/data/com.safelogj.spines/files/video/.
+The authorization data you enter (Telegram tokens, WebDAV login and password) is stored in an encrypted file
+in the App's internal secure directory.
+
+Data Transfer:
+The app transfers video files to third-party services (Telegram and Yandex.Disk)
+only when there is an internet connection and only to the chats/storage accounts you have configured.
+We (the Company) do not have access to your video files, tokens, or accounts.
+All data exchange occurs directly between your device and the servers of the services you have selected (Telegram Messenger Inc. and Yandex LLC).
+
+Deleting collected data:
+Deleting video recordings: You can delete recorded files at any time using the Android file manager
+from the /Android/data/com.safelogj.spines/files/video/ folder.
+
+Deleting authorization data:
+You can revoke access to Telegram or Yandex.Disk by simply deleting the data in the corresponding input fields in the App interface. When you clear data or uninstall the App, the encrypted file containing your credentials will be permanently deleted from your Device.
+
+Deletion via Services:
+You can delete files already sent to Telegram or Yandex.Disk through the respective service interfaces.
+
+Links to Other Sites:
+Our Service may contain links to other websites
+that are not operated by us. If you click on a third-party link,
+you will be redirected to that third party's site.
+We strongly encourage you to review the Privacy Policy of every website you visit.
+We have no control over and are not responsible for the content,
+privacy policies, or practices of third-party websites or services.
+
+Changes to this Privacy Policy:
+We may update our Privacy Policy from time to time.
+We will notify you of any changes by posting the new Privacy Policy on this page.
+We will notify you via a prominent notice on our Service before any changes become effective and update the "Last Updated" date at the top of this Privacy Policy.
+
+We strongly encourage you to review this Privacy Policy periodically for changes.
+Changes to this Privacy Policy are effective when they are posted on this page.
+
+Contact us:
+If you have any questions about this Privacy Policy, you can contact us:
+
+By email: simlog-app@yandex.ru

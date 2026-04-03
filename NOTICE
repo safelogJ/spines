@@ -1,0 +1,31 @@
+NOTICE
+
+This application includes open source and third-party libraries:
+
+1. AndroidX Libraries (AppCompat, Activity, ConstraintLayout, WorkManager, Lifecycle) (https://developer.android.com/jetpack/androidx)
+   Licensed under the Apache License, Version 2.0.
+   Copyright © : The Android Open Source Project
+
+2. CameraX Libraries (Core, Camera2, Lifecycle, Video, View) (https://developer.android.com/training/camerax)
+   Licensed under the Apache License, Version 2.0.
+   Copyright © : The Android Open Source Project
+
+3. Material Components for Android (https://github.com/material-components/material-components-android)
+   Licensed under the Apache License, Version 2.0.
+   Copyright © : Google LLC
+
+4. OkHttp (https://github.com/square/okhttp)
+   Licensed under the Apache License, Version 2.0.
+   Copyright © : Square, Inc.
+
+5. Guava: Google Core Libraries for Java (https://github.com/google/guava)
+   Licensed under the Apache License, Version 2.0.
+   Copyright © : Google LLC
+
+6. Espresso & Android Test Extensions (https://developer.android.com/training/testing/espresso)
+   Licensed under the Apache License, Version 2.0.
+   Copyright © : The Android Open Source Project
+
+7. JUnit 4 (https://github.com/junit-team/junit4)
+   Licensed under the Eclipse Public License 1.0.
+   Copyright © : JUnit Team

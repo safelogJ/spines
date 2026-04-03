@@ -1,0 +1,34 @@
+ An app for recording short videos and sending them to Telegram chat or Yandex.Disk.
+
+With this app, you can record short videos from the front or rear cameras and automatically send them to Telegram or Yandex.Disk.
+This can be useful for documenting illegal activity involving you or your phone.
+
+ How it works:
+When you launch the app, you will be asked to grant permission to use the camera, record audio, and display persistent notifications.
+Camera and microphone access is required for creating videos, while persistent notifications are required for long-term background operation.
+It is also recommended to disable battery optimization to ensure the app runs in the background for extended periods.
+
+After granting permissions, you can start recording.
+If you haven't specified the permissions for sending files to Telegram or Yandex.Disk, the files will remain in the /Android/data/com.safelogj.spines/files/video/ folder until you delete them. If you've specified the details for sending files to Yandex Disk, the files will be sent automatically regardless of internet connection (one attempt)
+and will not be deleted from the /Android/data/com.safelogj.spines/files/video/ folder.
+If you've specified the details for sending files to Telegram chat, the files will be sent automatically regardless of internet connection (until they're successfully sent).
+and will be automatically deleted from the /Android/data/com.safelogj.spines/files/video/ folder after they're successfully sent.
+If you've specified the details for sending files to both Yandex Disk and Telegram chat, the files will be sent to Yandex Disk first, and then to Telegram chat.
+
+The app interface can only be accessed from the shortcut on the first launch, when the app doesn't have permissions.
+If the app has permissions, clicking the shortcut will immediately start recording (if it's not already running) with the front camera. In this case, you can only access the interface by clicking on the persistent notification in the status bar.
+This is done so that you can quickly launch the app immediately after unlocking your phone if you were forced to do so.
+
+ When recording is running, the app automatically switches cameras:
+- If the app is on the screen, recording is performed using the rear camera.
+- If the app is minimized, recording is performed using the front camera.
+
+Recording is always active while the persistent notification is displayed in the status bar.
+Recording duration increases the longer the app is running, starting with 10 seconds for the first recording and then incrementing by 10 seconds, up to a maximum of 1 minute.
+
+ Data for sending video files:
+To send to a Telegram chat, you must specify the Telegram user ID in the app that will receive the video from the bot. You need to create a bot in Telegram, specify the bot's token in the app, and send a message to the bot, such as /start, from the account that will receive the video from the bot (whose ID you specified).
+
+To send to Yandex Disk, you need to create an account (don't use an existing one) with Yandex.Create a password for WebDAV apps in the account's mail settings.
+Allow access to the mailbox using email clients.
+Enter the Yandex.Corporate email address of the created account and the password you created for the apps in the app.
