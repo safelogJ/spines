@@ -61,13 +61,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class RecorderService extends LifecycleService {
 
     public static final String VIDEO_FILE_PATH = "video_file_path";
-    public static final String VIDEO_TARGET = "video_target";
-    public static final String TELEGRAM = "telegram";
-    public static final String YA_DISK = "ya_disk";
-    public static final String VIDEO_UPLOAD = "video_upload";
+    public static final String START_TIME = "start_time";
     private static final String WAKELOGTAG = "Spines::WakelockTag";
-    private static final String TG_UPLOAD_QUEUE = "tg_upload_queue";
-    private static final String YA_UPLOAD_QUEUE = "ya_upload_queue";
     private static final AtomicBoolean isRecorderServiceRun = new AtomicBoolean(false);
     private static final int MAX_DURATION_MILLIS = 60_000;
     private static final int STEP_MILLIS = 10_000;
@@ -229,6 +224,7 @@ public class RecorderService extends LifecycleService {
     private void uploadWithWorkers(String path) {
         Data inputData = new Data.Builder()
                 .putString(VIDEO_FILE_PATH, path)
+                .putLong(START_TIME, System.currentTimeMillis())
                 .build();
 
         OneTimeWorkRequest yaRequest = new OneTimeWorkRequest.Builder(YaWorker.class)

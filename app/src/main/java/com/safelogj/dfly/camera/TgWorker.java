@@ -46,7 +46,17 @@ public class TgWorker extends Worker  {
         } catch (Exception e) {
             Log.d(AppController.LOG_TAG, "ошибка в воркере при отправке");
         }
-        return Result.retry();
+
+        long startTime = getInputData().getLong(RecorderService.START_TIME, System.currentTimeMillis());
+        long currentTime = System.currentTimeMillis();
+        long dayInMs = 2 * 24 * 60 * 60 * 1000L;
+
+        if (currentTime - startTime > dayInMs) {
+            Log.d(AppController.LOG_TAG, "Сутки прошли, файл так и не ушел. Отмена.");
+            return Result.failure();
+        } else {
+            return Result.retry();
+        }
     }
 
     private boolean uploadToTelegram(File file, Clouds clouds) {
@@ -74,11 +84,11 @@ public class TgWorker extends Worker  {
                 Log.d(AppController.LOG_TAG, "Не верный токен или ID в телеграме: " + response.code());
                 return true;
             } else {
-                Log.e(AppController.LOG_TAG, "Ошибка сервера TG: " + response.code());
+                Log.d(AppController.LOG_TAG, "Ошибка сервера TG: " + response.code());
                 return false; // Попробуем позже
             }
         } catch (IOException e) {
-            Log.e(AppController.LOG_TAG, "Ошибка сети при отправке в TG", e);
+            Log.d(AppController.LOG_TAG, "Ошибка сети при отправке в TG", e);
             return false;
         }
     }

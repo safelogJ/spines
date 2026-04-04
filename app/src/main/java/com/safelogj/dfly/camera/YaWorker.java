@@ -63,14 +63,14 @@ public class YaWorker extends Worker  {
 
         try (Response response = httpClient.newCall(request).execute()) {
             if (response.isSuccessful() || response.code() == HttpURLConnection.HTTP_PRECON_FAILED) {
-                Log.d(AppController.LOG_TAG, "Файл успешно загружен! = " + response.code());
+                Log.d(AppController.LOG_TAG, "Файл успешно загружен! = Ya" + response.code());
                // return true;
             } else {
-                Log.d(AppController.LOG_TAG, "Ошибка: в ответе" + response.code() + " " + response.message());
+                Log.d(AppController.LOG_TAG, "Ошибка: в ответе Ya " + response.code() + " " + response.message());
               //  return false;
             }
         } catch (IOException e) {
-            Log.d(AppController.LOG_TAG, "Ошибка: при отправке = " + e.getMessage());
+            Log.d(AppController.LOG_TAG, "Ошибка: при отправке Ya = " + e.getMessage());
            // return "timeout".equals(e.getMessage()); // true
         }
         return true;
