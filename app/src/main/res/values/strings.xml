@@ -1,18 +1,18 @@
 <resources>
-    <string name="app_name">Spines</string>
-    <string name="notification_channel">CameraService</string>
-    <string name="notification_title">Dfly is running.</string>
+    <string name="app_name" translatable="false">Spines</string>
+    <string name="notification_channel" translatable="false">CameraService</string>
+    <string name="notification_title">Spines is running.</string>
     <string name="notification_text">Don\'t remove this notification.</string>
     <string name="permission_denied">Permission required.</string>
-    <string name="record_button">Start and Stop record.</string>
-    <string name="youtube_button">Youtube.</string>
-    <string name="button_battery">Battery button.</string>
-    <string name="yandex_email">video@yandex.ru</string>
-    <string name="yandex_email_help">яндекс почта отправителя видео</string>
-    <string name="yandex_app_password">abcdefghijklmnopq</string>
-    <string name="yandex_app_password_help">пароль приложения в яндекс почте</string>
-    <string name="tg_bot_token">0123456789:yNI4gb676nu5yv45IuniNiH6nInIniiOIn</string>
-    <string name="tg_bot_token_help">токен telegram бота</string>
-    <string name="tg_user_id">9876543210</string>
-    <string name="tg_user_id_help">id пользователя в telegram</string>
+    <string name="record_button" translatable="false">Start and Stop record.</string>
+    <string name="youtube_button" translatable="false">Youtube.</string>
+    <string name="button_battery" translatable="false">Battery button.</string>
+    <string name="yandex_email" translatable="false">video@yandex.ru</string>
+    <string name="yandex_email_help">yandex mail of the video sender</string>
+    <string name="yandex_app_password" translatable="false">abcdefghijklmnopq</string>
+    <string name="yandex_app_password_help">yandex mail app password</string>
+    <string name="tg_bot_token" translatable="false">0123456789:yNI4gb676nu5yv45IuniNiH6nInIniiOIn</string>
+    <string name="tg_bot_token_help">telegram bot token</string>
+    <string name="tg_user_id" translatable="false">9876543210</string>
+    <string name="tg_user_id_help">telegram user id</string>
 </resources>
