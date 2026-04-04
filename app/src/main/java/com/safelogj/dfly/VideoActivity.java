@@ -262,7 +262,7 @@ public class VideoActivity extends AppCompatActivity {
 
     private void openYoutubeLink() {
         try {
-            Uri webpage = Uri.parse("https://www.youtube.com/watch?v=eVcEH2mbUHk&list=PL5Ch75WcmOXSz-TVd8ihTaQO3eE4FP1MI&index=1");
+            Uri webpage = Uri.parse("https://www.youtube.com/watch?v=XX7zs7j_qgE&list=PL5Ch75WcmOXRW00PyHu-HGdLtBTKdgbeV");
             Intent intent = new Intent(Intent.ACTION_VIEW, webpage);
             startActivity(intent);
         } catch (Exception e) {
