@@ -36,7 +36,7 @@ This data is entered manually by you and is required solely for the automatic sh
 
 Media Files:
 The app records video with audio (background video recording).
-These files are stored locally on your device in a folder at /Android/data/com.safelogj.spines/files/video/.
+These files are stored locally on your device in a folder at /Android/data/com.safelogj.dfly/files/video/.
 
 Usage Data:
 Usage data may include technical information about the device's state
@@ -45,7 +45,7 @@ Such as internet access (for uploading files) and whether the screen is on (to p
 
 Storage of Your Personal Data:
 Local Storage:
-Video recordings are stored on your device in a folder at /Android/data/com.safelogj.spines/files/video/.
+Video recordings are stored on your device in a folder at /Android/data/com.safelogj.dfly/files/video/.
 The authorization data you enter (Telegram tokens, WebDAV login and password) is stored in an encrypted file
 in the App's internal secure directory.
 
@@ -57,7 +57,7 @@ All data exchange occurs directly between your device and the servers of the ser
 
 Deleting collected data:
 Deleting video recordings: You can delete recorded files at any time using the file manager
-from the /Android/data/com.safelogj.spines/files/video/ folder.
+from the /Android/data/com.safelogj.dfly/files/video/ folder.
 
 Deleting authorization data:
 You can revoke access to Telegram or Yandex.Disk by simply deleting the data in the corresponding input fields in the App interface.
