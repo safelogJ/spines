@@ -1,4 +1,4 @@
-[![Google Play](https://img.shields.io/badge/Google_Play-000000?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=com.safelogj.simlog)
+
 [![YouTube](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=XX7zs7j_qgE&list=PL5Ch75WcmOXRW00PyHu-HGdLtBTKdgbeV)
 
 
