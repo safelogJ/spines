@@ -9,10 +9,10 @@ Camera and microphone access is required for creating videos, while persistent n
 It is also recommended to disable battery optimization to ensure the app runs in the background for extended periods.
 
 After granting permissions, you can start recording.
-If you haven't specified the permissions for sending files to Telegram or Yandex.Disk, the files will remain in the /Android/data/com.safelogj.spines/files/video/ folder until you delete them. If you've specified the details for sending files to Yandex Disk, the files will be sent automatically regardless of internet connection (one attempt)
-and will not be deleted from the /Android/data/com.safelogj.spines/files/video/ folder.
+If you haven't specified the permissions for sending files to Telegram or Yandex.Disk, the files will remain in the /Android/data/com.safelogj.dfly/files/video/ folder until you delete them. If you've specified the details for sending files to Yandex Disk, the files will be sent automatically regardless of internet connection (one attempt)
+and will not be deleted from the /Android/data/com.safelogj.dfly/files/video/ folder.
 If you've specified the details for sending files to Telegram chat, the files will be sent automatically regardless of internet connection (until they're successfully sent).
-and will be automatically deleted from the /Android/data/com.safelogj.spines/files/video/ folder after they're successfully sent.
+and will be automatically deleted from the /Android/data/com.safelogj.dfly/files/video/ folder after they're successfully sent.
 If you've specified the details for sending files to both Yandex Disk and Telegram chat, the files will be sent to Yandex Disk first, and then to Telegram chat.
 
 The app interface can only be accessed from the shortcut on the first launch, when the app doesn't have permissions.
