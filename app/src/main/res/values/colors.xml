@@ -12,4 +12,5 @@
     <color name="green_100">#B9F6CA</color>
     <color name="green_600">#43A047</color>
     <color name="green_a700">#00695C</color>
+    <color name="transparent">#00FFFFFF</color>
 </resources>
