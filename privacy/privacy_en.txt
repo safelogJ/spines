@@ -36,7 +36,7 @@ This data is entered manually by you and is required solely for the automatic sh
 
 Media Files:
 The app records video with audio (background video recording).
-These files are stored locally on your device in a public folder at /Android/data/com.safelogj.spines/files/video/.
+These files are stored locally on your device in a folder at /Android/data/com.safelogj.spines/files/video/.
 
 Usage Data:
 Usage data may include technical information about the device's state
@@ -45,7 +45,7 @@ Such as internet access (for uploading files) and whether the screen is on (to p
 
 Storage of Your Personal Data:
 Local Storage:
-Video recordings are stored on your device in a public folder at /Android/data/com.safelogj.spines/files/video/.
+Video recordings are stored on your device in a folder at /Android/data/com.safelogj.spines/files/video/.
 The authorization data you enter (Telegram tokens, WebDAV login and password) is stored in an encrypted file
 in the App's internal secure directory.
 
@@ -56,11 +56,12 @@ We (the Company) do not have access to your video files, tokens, or accounts.
 All data exchange occurs directly between your device and the servers of the services you have selected (Telegram Messenger Inc. and Yandex LLC).
 
 Deleting collected data:
-Deleting video recordings: You can delete recorded files at any time using the Android file manager
+Deleting video recordings: You can delete recorded files at any time using the file manager
 from the /Android/data/com.safelogj.spines/files/video/ folder.
 
 Deleting authorization data:
-You can revoke access to Telegram or Yandex.Disk by simply deleting the data in the corresponding input fields in the App interface. When you clear data or uninstall the App, the encrypted file containing your credentials will be permanently deleted from your Device.
+You can revoke access to Telegram or Yandex.Disk by simply deleting the data in the corresponding input fields in the App interface.
+ When you clear data or uninstall the App, the encrypted file containing your credentials will be deleted from your Device.
 
 Deletion via Services:
 You can delete files already sent to Telegram or Yandex.Disk through the respective service interfaces.
