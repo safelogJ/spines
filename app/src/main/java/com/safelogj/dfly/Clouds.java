@@ -1,11 +1,14 @@
 package com.safelogj.dfly;
 
+import okhttp3.Credentials;
+
 public class Clouds {
 
     private String tgBotToken = AppController.EMPTY_STRING;
     private String tgChatId = AppController.EMPTY_STRING;
     private String yaAcc = AppController.EMPTY_STRING;
     private String appPass = AppController.EMPTY_STRING;
+    private String credentials = AppController.EMPTY_STRING;
 
 
     public String getTgBotToken() {
@@ -46,5 +49,15 @@ public class Clouds {
 
     public boolean idValidYaDisk() {
         return !yaAcc.isEmpty() && !appPass.isEmpty();
+    }
+
+    public String getCredentials() {
+        return credentials;
+    }
+
+    public void buildCredentials() {
+        if(idValidYaDisk()) {
+            credentials = Credentials.basic(yaAcc, appPass);
+        }
     }
 }

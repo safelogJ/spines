@@ -230,6 +230,7 @@ public class RecorderService extends LifecycleService {
         OneTimeWorkRequest yaRequest = new OneTimeWorkRequest.Builder(YaWorker.class)
                 .setConstraints(constraints)
                 .setInputData(inputData)
+                .setBackoffCriteria(BackoffPolicy.LINEAR, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
                 .build();
 
         OneTimeWorkRequest tgRequest = new OneTimeWorkRequest.Builder(TgWorker.class)
@@ -275,6 +276,7 @@ public class RecorderService extends LifecycleService {
         if (powerManager == null || mWakeLock == null) {
             AppController controller = (AppController) getApplication();
             clouds = controller.getSavedClouds();
+            clouds.buildCredentials();
             powerManager = controller.getPowerManager();
             if (powerManager != null) {
                 if (mWakeLock == null) {

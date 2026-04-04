@@ -40,21 +40,29 @@ public class YaWorker extends Worker  {
 
         try {
             Log.d(AppController.LOG_TAG, "doWork Ya");
-            if (uploadToYandexDisk(file, clouds)) return Result.success();
+            uploadToYandexDisk(file, clouds);
+            return Result.success();
 
         } catch (Exception e) {
             Log.d(AppController.LOG_TAG, "ошибка в воркере при отправке");
         }
-        return Result.retry();
+        long startTime = getInputData().getLong(RecorderService.START_TIME, 0);
+
+        if (System.currentTimeMillis() - startTime > 120_000L) {
+            Log.d(AppController.LOG_TAG, "2 минуты прошли, файл так и не ушел. Отмена.");
+            return Result.failure();
+        } else {
+            return Result.retry();
+        }
     }
 
-    private boolean uploadToYandexDisk(File file, Clouds clouds) {
-        String credentials = Credentials.basic(clouds.getYaAcc(), clouds.getAppPass());
+    private void uploadToYandexDisk(File file, Clouds clouds) {
+
         RequestBody body = RequestBody.create(file, MediaType.parse("video/mp4"));
 
         Request request = new Request.Builder()
                 .url("https://webdav.yandex.ru/" + file.getName())
-                .addHeader("Authorization", credentials)
+                .addHeader("Authorization", clouds.getCredentials())
                 .addHeader("If-None-Match", "*")
                 .put(body)
                 .build();
@@ -73,6 +81,6 @@ public class YaWorker extends Worker  {
             Log.d(AppController.LOG_TAG, "Ошибка: при отправке Ya = " + e.getMessage());
            // return "timeout".equals(e.getMessage()); // true
         }
-        return true;
+        //  return true;
     }
 }

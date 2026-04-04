@@ -47,12 +47,10 @@ public class TgWorker extends Worker  {
             Log.d(AppController.LOG_TAG, "ошибка в воркере при отправке");
         }
 
-        long startTime = getInputData().getLong(RecorderService.START_TIME, System.currentTimeMillis());
-        long currentTime = System.currentTimeMillis();
-        long dayInMs = 2 * 24 * 60 * 60 * 1000L;
+        long startTime = getInputData().getLong(RecorderService.START_TIME, 0);
 
-        if (currentTime - startTime > dayInMs) {
-            Log.d(AppController.LOG_TAG, "Сутки прошли, файл так и не ушел. Отмена.");
+        if (System.currentTimeMillis() - startTime > (2 * 24 * 60 * 60 * 1000L)) {
+            Log.d(AppController.LOG_TAG, "2 Суток прошло, файл так и не ушел. Отмена.");
             return Result.failure();
         } else {
             return Result.retry();
