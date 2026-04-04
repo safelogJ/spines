@@ -1,8 +1,10 @@
 [![Google Play](https://img.shields.io/badge/Google_Play-000000?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=com.safelogj.simlog)
 [![YouTube](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/playlist?list=PL5Ch75WcmOXSz-TVd8ihTaQO3eE4FP1MI)
 
-![Spines](./fastlane/metadata/android/en-US/images/phoneScreenshots/featureGraphic.jpg)
+
 ## Приложение для записи коротких видео файлов с отправкой в телеграм чат или яндекс диск.
+
+![Spines](./fastlane/metadata/android/en-US/images/phoneScreenshots/featureGraphic.jpg)
 
 С помощью приложения вы можете записывать с фронтальной или задней камер короткие видео с автоматической отправкой в телеграмм или яндекс.диск. 
 Оно может быть полезным для регистраций противоправных действий с вами или вашим телефоном.
