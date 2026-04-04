@@ -8,7 +8,7 @@ public class Clouds {
     private String tgChatId = AppController.EMPTY_STRING;
     private String yaAcc = AppController.EMPTY_STRING;
     private String appPass = AppController.EMPTY_STRING;
-    private String credentials = AppController.EMPTY_STRING;
+    private String credentialsYa = AppController.EMPTY_STRING;
 
 
     public String getTgBotToken() {
@@ -51,13 +51,13 @@ public class Clouds {
         return !yaAcc.isEmpty() && !appPass.isEmpty();
     }
 
-    public String getCredentials() {
-        return credentials;
+    public String getCredentialsYa() {
+        return credentialsYa;
     }
 
     public void buildCredentials() {
         if(idValidYaDisk()) {
-            credentials = Credentials.basic(yaAcc, appPass);
+            credentialsYa = Credentials.basic(yaAcc, appPass);
         }
     }
 }

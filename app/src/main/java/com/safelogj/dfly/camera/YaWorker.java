@@ -14,7 +14,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
-import okhttp3.Credentials;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -62,7 +61,7 @@ public class YaWorker extends Worker  {
 
         Request request = new Request.Builder()
                 .url("https://webdav.yandex.ru/" + file.getName())
-                .addHeader("Authorization", clouds.getCredentials())
+                .addHeader("Authorization", clouds.getCredentialsYa())
                 .addHeader("If-None-Match", "*")
                 .put(body)
                 .build();
@@ -72,15 +71,12 @@ public class YaWorker extends Worker  {
         try (Response response = httpClient.newCall(request).execute()) {
             if (response.isSuccessful() || response.code() == HttpURLConnection.HTTP_PRECON_FAILED) {
                 Log.d(AppController.LOG_TAG, "Файл успешно загружен! = Ya" + response.code());
-               // return true;
             } else {
                 Log.d(AppController.LOG_TAG, "Ошибка: в ответе Ya " + response.code() + " " + response.message());
-              //  return false;
             }
         } catch (IOException e) {
             Log.d(AppController.LOG_TAG, "Ошибка: при отправке Ya = " + e.getMessage());
            // return "timeout".equals(e.getMessage()); // true
         }
-        //  return true;
     }
 }
