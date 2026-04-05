@@ -38,12 +38,12 @@ public class YaWorker extends Worker  {
 
         try {
             Clouds clouds = ((AppController) getApplicationContext()).getSavedClouds();
-            Log.d(AppController.LOG_TAG, "doWork Ya");
+            Log.d(AppController.LOG_TAG, "doWork Ya =   " + filePath);
             uploadToYandexDisk(file, clouds);
             return Result.success();
 
         } catch (Exception e) {
-            Log.d(AppController.LOG_TAG, "ошибка в воркере при отправке");
+            Log.d(AppController.LOG_TAG, "ошибка в Ya воркере при отправке");
         }
 
         long startTime = getInputData().getLong(RecorderService.START_TIME, 0);

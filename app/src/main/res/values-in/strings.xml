@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_title">Spines sedang berjalan.</string>
+    <string name="notification_text">Jangan hapus notifikasi ini.</string>
+    <string name="permission_denied">Izin diperlukan.</string>
+    <string name="yandex_email_help">email yandex pengirim video</string>
+    <string name="yandex_app_password_help">kata sandi aplikasi di email yandex</string>
+    <string name="tg_bot_token_help">token bot telegram</string>
+    <string name="tg_user_id_help">id pengguna di telegram</string>
+</resources>

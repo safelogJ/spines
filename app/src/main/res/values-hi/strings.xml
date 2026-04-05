@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_title">Spines सक्रिय है।</string>
+    <string name="notification_text">इस नोटिफिकेशन को न हटाएँ।</string>
+    <string name="permission_denied">अनुमति की आवश्यकता है।</string>
+    <string name="yandex_email_help">वीडियो भेजने वाले का yandex ईमेल</string>
+    <string name="yandex_app_password_help">yandex ईमेल में ऐप पासवर्ड</string>
+    <string name="tg_bot_token_help">telegram बोट टोकन</string>
+    <string name="tg_user_id_help">telegram में उपयोगकर्ता id</string>
+</resources>

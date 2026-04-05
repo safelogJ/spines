@@ -61,7 +61,7 @@ from the /Android/data/com.safelogj.dfly/files/video/ folder.
 
 Deleting authorization data:
 You can revoke access to Telegram or Yandex.Disk by simply deleting the data in the corresponding input fields in the App interface.
- When you clear data or uninstall the App, the encrypted file containing your credentials will be deleted from your Device.
+ When you clear data and uninstall the App, the encrypted file containing your credentials will be deleted from your Device.
 
 Deletion via Services:
 You can delete files already sent to Telegram or Yandex.Disk through the respective service interfaces.

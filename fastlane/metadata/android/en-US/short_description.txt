@@ -1,1 +1,1 @@
-Recording video to the telegram and yandex.
+Record short videos and send them to Telegram or Yandex Disk

@@ -40,11 +40,11 @@ public class TgWorker extends Worker  {
 
         try {
             Clouds clouds = ((AppController) getApplicationContext()).getSavedClouds();
-            Log.d(AppController.LOG_TAG, "doWork TG");
+            Log.d(AppController.LOG_TAG, "doWork TG =   " + filePath);
             if (uploadToTelegram(file, clouds)) return Result.success();
 
         } catch (Exception e) {
-            Log.d(AppController.LOG_TAG, "ошибка в воркере при отправке");
+            Log.d(AppController.LOG_TAG, "ошибка в TG воркере при отправке");
         }
 
         long startTime = getInputData().getLong(RecorderService.START_TIME, 0);

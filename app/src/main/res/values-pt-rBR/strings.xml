@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_title">Spines está em execução.</string>
+    <string name="notification_text">Não remova esta notificação.</string>
+    <string name="permission_denied">Permissão necessária.</string>
+    <string name="yandex_email_help">e-mail do yandex do remetente do vídeo</string>
+    <string name="yandex_app_password_help">senha de aplicativo no e-mail do yandex</string>
+    <string name="tg_bot_token_help">token do bot do telegram</string>
+    <string name="tg_user_id_help">id de usuário no telegram</string>
+</resources>

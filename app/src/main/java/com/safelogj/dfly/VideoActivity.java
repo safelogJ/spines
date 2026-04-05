@@ -168,13 +168,13 @@ public class VideoActivity extends AppCompatActivity {
 
     private void writeFromFieldsToClouds() {
         Editable yaAcc = mBinding.yandexMailEditText.getText();
-        clouds.setYaAcc(yaAcc == null ? AppController.EMPTY_STRING : yaAcc.toString());
+        clouds.setYaAcc(yaAcc == null ? AppController.EMPTY_STRING : yaAcc.toString().trim());
         Editable appPass = mBinding.yandexAppPassEditText.getText();
-        clouds.setAppPass(appPass == null ? AppController.EMPTY_STRING : appPass.toString());
+        clouds.setAppPass(appPass == null ? AppController.EMPTY_STRING : appPass.toString().trim());
         Editable tgToken = mBinding.tgTokenEditText.getText();
-        clouds.setTgBotToken(tgToken == null ? AppController.EMPTY_STRING : tgToken.toString());
+        clouds.setTgBotToken(tgToken == null ? AppController.EMPTY_STRING : tgToken.toString().trim());
         Editable tgId = mBinding.tgIdEditText.getText();
-        clouds.setTgChatId(tgId == null ? AppController.EMPTY_STRING : tgId.toString());
+        clouds.setTgChatId(tgId == null ? AppController.EMPTY_STRING : tgId.toString().trim());
         controller.writeCloudsEncrypted();
     }
 
@@ -262,8 +262,7 @@ public class VideoActivity extends AppCompatActivity {
 
     private void openYoutubeLink() {
         try {
-            Uri webpage = Uri.parse("https://www.youtube.com/watch?v=XX7zs7j_qgE&list=PL5Ch75WcmOXRW00PyHu-HGdLtBTKdgbeV");
-            Intent intent = new Intent(Intent.ACTION_VIEW, webpage);
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=XX7zs7j_qgE&list=PL5Ch75WcmOXRW00PyHu-HGdLtBTKdgbeV"));
             startActivity(intent);
         } catch (Exception e) {
             //
