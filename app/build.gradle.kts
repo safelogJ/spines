@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
-configure <ApplicationExtension> {
+configure<ApplicationExtension> {
     namespace = "com.safelogj.dfly"
     compileSdk = 36
 
@@ -13,14 +13,18 @@ configure <ApplicationExtension> {
         applicationId = "com.safelogj.dfly"
         minSdk = 29
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 3
+        versionName = "1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
+
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(

@@ -109,7 +109,7 @@ public class AppController extends Application implements CameraXConfig.Provider
         okHttpClient = new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS) // Время на установку связи
                 .writeTimeout(5, TimeUnit.MINUTES)   // Время на отправку данных (для POST)
-                .readTimeout(1, TimeUnit.MINUTES)    // Время на ожидание ответа
+                .readTimeout(30, TimeUnit.SECONDS)    // Время на ожидание ответа
                 .callTimeout(9, TimeUnit.MINUTES) // Общее время на весь запрос с ответом, чтоб не переподключалось много раз
                 .retryOnConnectionFailure(true)
                 .build();
