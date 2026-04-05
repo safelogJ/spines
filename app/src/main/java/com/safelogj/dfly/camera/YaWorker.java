@@ -32,7 +32,7 @@ public class YaWorker extends Worker  {
         String filePath = getInputData().getString(RecorderService.VIDEO_FILE_PATH);
         Clouds clouds = ((AppController) getApplicationContext()).getSavedClouds();
 
-        if (filePath == null || !clouds.idValidYaDisk()) return Result.success();
+        if (filePath == null) return Result.success();
 
         File file = new File(filePath);
         if (!file.exists()) return Result.success();
@@ -45,11 +45,11 @@ public class YaWorker extends Worker  {
         } catch (Exception e) {
             Log.d(AppController.LOG_TAG, "ошибка в воркере при отправке");
         }
-        long startTime = getInputData().getLong(RecorderService.START_TIME, 0);
 
+        long startTime = getInputData().getLong(RecorderService.START_TIME, 0);
         if (System.currentTimeMillis() - startTime > 120_000L) {
             Log.d(AppController.LOG_TAG, "2 минуты прошли, файл так и не ушел. Отмена.");
-            return Result.failure();
+            return Result.success();
         } else {
             return Result.retry();
         }

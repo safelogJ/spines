@@ -34,7 +34,7 @@ public class TgWorker extends Worker  {
         String filePath = getInputData().getString(RecorderService.VIDEO_FILE_PATH);
         Clouds clouds = ((AppController) getApplicationContext()).getSavedClouds();
 
-        if (filePath == null || !clouds.isValidTg()) return Result.success();
+        if (filePath == null) return Result.success();
 
         File file = new File(filePath);
         if (!file.exists()) return Result.success();

@@ -38,6 +38,7 @@ import androidx.work.Data;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkContinuation;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
@@ -201,7 +202,7 @@ public class RecorderService extends LifecycleService {
                     if (event instanceof VideoRecordEvent.Finalize finalizeEvent) {
                         if (!finalizeEvent.hasError()) {
                             Log.d(AppController.LOG_TAG, "Файл записан: " + videoFile.getAbsolutePath());
-                            if (clouds.isValidTg() || clouds.idValidYaDisk()) {
+                            if (clouds.isValidTg() || clouds.isValidYaDisk()) {
                                 uploadWithWorkers(videoFile.getAbsolutePath());
                             }
 
@@ -227,22 +228,36 @@ public class RecorderService extends LifecycleService {
                 .putLong(START_TIME, System.currentTimeMillis())
                 .build();
 
-        OneTimeWorkRequest yaRequest = new OneTimeWorkRequest.Builder(YaWorker.class)
-                .setConstraints(constraints)
-                .setInputData(inputData)
-                .setBackoffCriteria(BackoffPolicy.LINEAR, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
-                .build();
+        WorkContinuation continuation = null;
 
-        OneTimeWorkRequest tgRequest = new OneTimeWorkRequest.Builder(TgWorker.class)
-                .setConstraints(constraints)
-                .setInputData(inputData)
-                .setBackoffCriteria(BackoffPolicy.LINEAR, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
-                .build();
+        if (clouds.isValidYaDisk()) {
+            OneTimeWorkRequest yaRequest = new OneTimeWorkRequest.Builder(YaWorker.class)
+                    .setConstraints(constraints)
+                    .setInputData(inputData)
+                    .setBackoffCriteria(BackoffPolicy.LINEAR, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
+                    .build();
 
-        WorkManager.getInstance(this)
-                .beginUniqueWork(path, ExistingWorkPolicy.KEEP, yaRequest)
-                .then(tgRequest)
-                .enqueue();
+            continuation = WorkManager.getInstance(this).beginUniqueWork(path, ExistingWorkPolicy.KEEP, yaRequest);
+        }
+
+        if (clouds.isValidTg()) {
+            OneTimeWorkRequest tgRequest = new OneTimeWorkRequest.Builder(TgWorker.class)
+                    .setConstraints(constraints)
+                    .setInputData(inputData)
+                    .setBackoffCriteria(BackoffPolicy.LINEAR, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
+                    .build();
+
+            if (continuation == null) {
+                continuation = WorkManager.getInstance(this).beginUniqueWork(path, ExistingWorkPolicy.KEEP, tgRequest);
+            } else {
+                continuation = continuation.then(tgRequest);
+            }
+        }
+
+        if (continuation != null) {
+            continuation.enqueue();
+        }
+
     }
 
     private void stopRecordingFile() {

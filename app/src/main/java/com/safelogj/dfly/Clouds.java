@@ -47,7 +47,7 @@ public class Clouds {
         return !tgBotToken.isEmpty() && !tgChatId.isEmpty();
     }
 
-    public boolean idValidYaDisk() {
+    public boolean isValidYaDisk() {
         return !yaAcc.isEmpty() && !appPass.isEmpty();
     }
 
@@ -56,7 +56,7 @@ public class Clouds {
     }
 
     public void buildCredentials() {
-        if(idValidYaDisk()) {
+        if(isValidYaDisk()) {
             credentialsYa = Credentials.basic(yaAcc, appPass);
         }
     }
