@@ -31,15 +31,15 @@ public class TgWorker extends Worker  {
     @NonNull
     @Override
     public Result doWork() {
-        String filePath = getInputData().getString(RecorderService.VIDEO_FILE_PATH);
-        Clouds clouds = ((AppController) getApplicationContext()).getSavedClouds();
 
+        String filePath = getInputData().getString(RecorderService.VIDEO_FILE_PATH);
         if (filePath == null) return Result.success();
 
         File file = new File(filePath);
         if (!file.exists()) return Result.success();
 
         try {
+            Clouds clouds = ((AppController) getApplicationContext()).getSavedClouds();
             Log.d(AppController.LOG_TAG, "doWork TG");
             if (uploadToTelegram(file, clouds)) return Result.success();
 
@@ -48,7 +48,6 @@ public class TgWorker extends Worker  {
         }
 
         long startTime = getInputData().getLong(RecorderService.START_TIME, 0);
-
         if (System.currentTimeMillis() - startTime > (2 * 24 * 60 * 60 * 1000L)) {
             Log.d(AppController.LOG_TAG, "2 Суток прошло, файл так и не ушел. Отмена.");
             return Result.failure();

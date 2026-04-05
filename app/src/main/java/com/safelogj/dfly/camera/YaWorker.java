@@ -29,15 +29,15 @@ public class YaWorker extends Worker  {
     @NonNull
     @Override
     public Result doWork() {
-        String filePath = getInputData().getString(RecorderService.VIDEO_FILE_PATH);
-        Clouds clouds = ((AppController) getApplicationContext()).getSavedClouds();
 
+        String filePath = getInputData().getString(RecorderService.VIDEO_FILE_PATH);
         if (filePath == null) return Result.success();
 
         File file = new File(filePath);
         if (!file.exists()) return Result.success();
 
         try {
+            Clouds clouds = ((AppController) getApplicationContext()).getSavedClouds();
             Log.d(AppController.LOG_TAG, "doWork Ya");
             uploadToYandexDisk(file, clouds);
             return Result.success();
