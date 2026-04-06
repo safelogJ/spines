@@ -66,7 +66,7 @@ public class VideoActivity extends AppCompatActivity {
             RecorderService.LocalBinder binder = (RecorderService.LocalBinder) service;
             recorderService = binder.getRecorderService();
             recorderService.setSurfaceProvider(mBinding.viewFinder.getSurfaceProvider());
-            // Log.d(AppController.LOG_TAG, "Забиндилось ====== ");
+             Log.d(AppController.LOG_TAG, "Забиндилось ====== онСтарт");
         }
 
         @Override
@@ -183,7 +183,7 @@ public class VideoActivity extends AppCompatActivity {
         if (recorderService != null) {
             recorderService.setSurfaceProvider(null);
             unbindService(recorderServiceConnection);
-            //  Log.d(AppController.LOG_TAG, "Анбиндинг ====== ");
+              Log.d(AppController.LOG_TAG, "Анбиндинг ====== онСтоп");
             recorderService = null;
         }
         if (!RecorderService.isServiceRun()) {

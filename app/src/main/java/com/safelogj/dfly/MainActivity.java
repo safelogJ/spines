@@ -20,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (!RecorderService.isServiceRun()) {
+            Log.d(AppController.LOG_TAG, "Сервис не работает, запускается checkAndRequestPermissions");
             checkAndRequestPermissions();
         } else {
             Log.d(AppController.LOG_TAG, "Сервис уже работает");
@@ -44,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
         if (!permissions.isEmpty()) {
             Intent intent = new Intent(this, VideoActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            Log.d(AppController.LOG_TAG, "Разрешений нет, запускаем видео активити");
             startActivity(intent);
             finish();
         } else {

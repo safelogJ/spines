@@ -60,9 +60,8 @@ public class TgWorker extends Worker  {
         RequestBody requestBody = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("chat_id", clouds.getTgChatId())
-                .addFormDataPart("video", file.getName(),
-                        RequestBody.create(file, MediaType.parse("video/mp4")))
-                .addFormDataPart("caption", "Запись от " + file.getName())
+                .addFormDataPart("video", file.getName(), RequestBody.create(file, MediaType.parse("video/mp4")))
+                .addFormDataPart("caption", file.getName())
                 .build();
 
         Request request = new Request.Builder()

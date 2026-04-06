@@ -76,7 +76,6 @@ public class YaWorker extends Worker  {
             }
         } catch (IOException e) {
             Log.d(AppController.LOG_TAG, "Ошибка: при отправке Ya = " + e.getMessage());
-           // return "timeout".equals(e.getMessage()); // true
         }
     }
 }
