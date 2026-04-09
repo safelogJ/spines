@@ -71,7 +71,7 @@ public class VideoActivity extends AppCompatActivity {
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            // recorderService.setSurfaceProvider(null);
+            Log.d(AppController.LOG_TAG, "onServiceDisconnected " + name.toShortString());
         }
     };
 

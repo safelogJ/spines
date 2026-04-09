@@ -63,7 +63,7 @@ public class RecorderService extends LifecycleService {
 
     public static final String VIDEO_FILE_PATH = "video_file_path";
     public static final String START_TIME = "start_time";
-    private static final String WAKELOGTAG = "Spines::WakelockTag";
+    private static final String WAKELOCKTAG = "Spines::WakelockTag";
     private static final AtomicBoolean isRecorderServiceRun = new AtomicBoolean(false);
     private static final int MAX_DURATION_MILLIS = 60_000;
     private static final int STEP_MILLIS = 10_000;
@@ -174,10 +174,10 @@ public class RecorderService extends LifecycleService {
             preview.setSurfaceProvider(surfaceProvider);
             if (surfaceProvider != null) {
                 cameraProvider.bindToLifecycle(this, getSelector(backCameraSelector), preview, videoCapture);
-                Log.e(AppController.LOG_TAG, "Привязка задней камеры");
+                Log.i(AppController.LOG_TAG, "Привязка задней камеры");
             } else {
                 cameraProvider.bindToLifecycle(this, getSelector(frontCameraSelector), videoCapture);
-                Log.e(AppController.LOG_TAG, "Привязка фронтальной камеры");
+                Log.i(AppController.LOG_TAG, "Привязка фронтальной камеры");
             }
             mainHandler.post(recordNextChunkRunnable);
         } catch (IllegalStateException | IllegalArgumentException | UnsupportedOperationException |
@@ -295,7 +295,7 @@ public class RecorderService extends LifecycleService {
             powerManager = controller.getPowerManager();
             if (powerManager != null) {
                 if (mWakeLock == null) {
-                    mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOGTAG);
+                    mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCKTAG);
                 }
                 if (!powerManager.isInteractive()) {
                     getWakeLock();
@@ -339,7 +339,7 @@ public class RecorderService extends LifecycleService {
                 defaultCameraSelector = cameraInfos.get(0).getCameraSelector();
             }
         } catch (CameraInfoUnavailableException e) {
-            Log.e(AppController.LOG_TAG, "Ошибка доступа к списку камер", e);
+            Log.i(AppController.LOG_TAG, "Ошибка доступа к списку камер", e);
         }
     }
 

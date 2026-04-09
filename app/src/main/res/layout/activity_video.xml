@@ -59,7 +59,7 @@
                 app:layout_constraintEnd_toStartOf="@+id/batteryButton"
                 app:layout_constraintTop_toTopOf="parent"
                 app:rippleColor="@color/green_100"
-                app:tint="@color/white" />
+                app:tint="@color/light_gray" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/batteryButton"
@@ -75,7 +75,9 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:rippleColor="@color/light_gray"
-                app:tint="@color/white" />
+                app:tint="@color/light_gray" />
+
+
 
             <androidx.core.widget.NestedScrollView
                 android:id="@+id/fielder"
@@ -85,7 +87,7 @@
                 android:layout_marginTop="32dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
-                android:background="@color/light_gray"
+                android:background="@drawable/fielder_background"
                 android:padding="16dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
