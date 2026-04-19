@@ -28,15 +28,24 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.UnrecoverableEntryException;
+import java.security.KeyStoreException;
+import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 
@@ -232,7 +241,9 @@ public class AppController extends Application implements CameraXConfig.Provider
 
     }
 
-    private SecretKey getOrCreateSecretKey() throws Exception {
+    private SecretKey getOrCreateSecretKey() throws KeyStoreException, IllegalArgumentException, IOException, NoSuchAlgorithmException,
+            CertificateException, NullPointerException, UnrecoverableEntryException, NoSuchProviderException, InvalidAlgorithmParameterException {
+
         KeyStore keyStore = KeyStore.getInstance(ANDROID_KEYSTORE);
         keyStore.load(null);
 
@@ -258,7 +269,11 @@ public class AppController extends Application implements CameraXConfig.Provider
     }
 
 
-    private byte[] encrypt(byte[] dataBytes) throws Exception {
+    private byte[] encrypt(byte[] dataBytes) throws KeyStoreException, IllegalArgumentException, IOException, NoSuchAlgorithmException,
+            CertificateException, NullPointerException, UnrecoverableEntryException, NoSuchProviderException, InvalidAlgorithmParameterException,
+            NoSuchPaddingException, UnsupportedOperationException, InvalidKeyException, IllegalBlockSizeException, IllegalStateException,
+            BadPaddingException {
+
         SecretKey secretKey = getOrCreateSecretKey();
         if (mCipher == null) {
             mCipher = Cipher.getInstance(TRANSFORMATION);
@@ -274,7 +289,11 @@ public class AppController extends Application implements CameraXConfig.Provider
         return combined;
     }
 
-    private byte[] decrypt(byte[] combinedBytes) throws Exception {
+    private byte[] decrypt(byte[] combinedBytes) throws KeyStoreException, IllegalArgumentException, IOException, NoSuchAlgorithmException,
+            CertificateException, NullPointerException, UnrecoverableEntryException, NoSuchProviderException, InvalidAlgorithmParameterException,
+            NoSuchPaddingException, UnsupportedOperationException, InvalidKeyException, IllegalBlockSizeException, IllegalStateException,
+            BadPaddingException {
+
         // Минимальная длина: 1 байт (длина IV) + 1 байт (IV) + 16 байт (GCM Tag) = 18 байт
         if (combinedBytes.length < 1 + GCM_TAG_LENGTH) {
             throw new InvalidKeyException("Combined data too short to contain IV length and GCM Tag.");

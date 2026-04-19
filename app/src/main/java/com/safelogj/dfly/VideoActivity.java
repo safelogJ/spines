@@ -17,12 +17,18 @@ import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.Editable;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.Camera;
+import androidx.camera.core.ZoomState;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -66,7 +72,8 @@ public class VideoActivity extends AppCompatActivity {
             RecorderService.LocalBinder binder = (RecorderService.LocalBinder) service;
             recorderService = binder.getRecorderService();
             recorderService.setSurfaceProvider(mBinding.viewFinder.getSurfaceProvider());
-             Log.d(AppController.LOG_TAG, "Забиндилось ====== онСтарт");
+            currentCamera = recorderService.getCurrentCamera();
+            Log.d(AppController.LOG_TAG, "Забиндилось ====== онСтарт");
         }
 
         @Override
@@ -83,6 +90,10 @@ public class VideoActivity extends AppCompatActivity {
     private ColorStateList btnRipleColorGreen;
     private ColorStateList btnRipleColorBlack;
     private Clouds clouds;
+    @Nullable
+    private ScaleGestureDetector scaleGestureDetector;
+    @Nullable
+    private Camera currentCamera;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,31 +117,12 @@ public class VideoActivity extends AppCompatActivity {
             }
             return WindowInsetsCompat.CONSUMED;
         });
+
         controller = (AppController) getApplication();
         clouds = controller.getSavedClouds();
-
-        mBinding.stopServiceBtn.setOnClickListener(v -> {
-            if (RecorderService.isServiceRun()) {
-                if (recorderService != null) {
-                    unbindService(recorderServiceConnection);
-                    recorderService = null;
-                }
-                stopService(new Intent(this, RecorderService.class));
-                readFromCloudsToFields();
-                setFielderVisibility(View.VISIBLE);
-                mBinding.stopServiceBtn.getDrawable().setTint(getColor(R.color.white));
-            } else {
-                if (isAllPermissionsGranted) {
-                    writeFromFieldsToClouds();
-                    Intent intent = new Intent(this, RecorderService.class);
-                    ContextCompat.startForegroundService(this, intent);
-                    bindService(intent, recorderServiceConnection, BIND_AUTO_CREATE);
-                    setFielderVisibility(View.GONE);
-                    mBinding.stopServiceBtn.getDrawable().setTint(getColor(R.color.redA400));
-                }
-            }
-        });
-
+        initStopServiceBtn();
+        initGestureDetector();
+        initZoomListener();
         mBinding.batteryButton.setOnClickListener(view -> fixBattery());
         mBinding.youtubeButton.setOnClickListener(view -> openYoutubeLink());
         powerManager = controller.getPowerManager();
@@ -138,7 +130,6 @@ public class VideoActivity extends AppCompatActivity {
         btnBackColorBlack = controller.getBtnBackColorBlack();
         btnRipleColorGreen = controller.getBtnRipleColorGreen();
         btnRipleColorBlack = controller.getBtnRipleColorBlack();
-
         setDarkStatusBar();
         checkAndRequestPermissions();
     }
@@ -180,10 +171,11 @@ public class VideoActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
+        currentCamera = null;
         if (recorderService != null) {
             recorderService.setSurfaceProvider(null);
             unbindService(recorderServiceConnection);
-              Log.d(AppController.LOG_TAG, "Анбиндинг ====== онСтоп");
+            Log.d(AppController.LOG_TAG, "Анбиндинг ====== онСтоп");
             recorderService = null;
         }
         if (!RecorderService.isServiceRun()) {
@@ -267,5 +259,71 @@ public class VideoActivity extends AppCompatActivity {
         } catch (Exception e) {
             //
         }
+    }
+
+    private void initStopServiceBtn() {
+        mBinding.stopServiceBtn.setOnClickListener(v -> {
+            if (RecorderService.isServiceRun()) {
+                if (recorderService != null) {
+                    unbindService(recorderServiceConnection);
+                    recorderService = null;
+                }
+                stopService(new Intent(this, RecorderService.class));
+                readFromCloudsToFields();
+                setFielderVisibility(View.VISIBLE);
+                mBinding.stopServiceBtn.getDrawable().setTint(getColor(R.color.white));
+            } else {
+                if (isAllPermissionsGranted) {
+                    writeFromFieldsToClouds();
+                    Intent intent = new Intent(this, RecorderService.class);
+                    ContextCompat.startForegroundService(this, intent);
+                    bindService(intent, recorderServiceConnection, BIND_AUTO_CREATE);
+                    setFielderVisibility(View.GONE);
+                    mBinding.stopServiceBtn.getDrawable().setTint(getColor(R.color.redA400));
+                }
+            }
+        });
+    }
+
+    private void initGestureDetector() {
+        scaleGestureDetector = new ScaleGestureDetector(this, new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            @Override
+            public boolean onScale(@NonNull ScaleGestureDetector detector) {
+                if (currentCamera == null && recorderService != null) {
+                    currentCamera = recorderService.getCurrentCamera();
+                }
+                if (currentCamera == null) {
+                    return false;
+                }
+                ZoomState zoomState = currentCamera.getCameraInfo().getZoomState().getValue();
+                if (zoomState == null) return false;
+                RecorderService.zoomRatio = getNextZoomRatio(detector, zoomState);
+                currentCamera.getCameraControl().setZoomRatio(RecorderService.zoomRatio);
+                return true;
+            }
+
+            private float getNextZoomRatio(@NonNull ScaleGestureDetector detector, ZoomState zoomState) {
+                float nextZoomRatio = zoomState.getZoomRatio() * detector.getScaleFactor();
+                if (nextZoomRatio < zoomState.getMinZoomRatio()) {
+                    nextZoomRatio = zoomState.getMinZoomRatio();
+                } else if (nextZoomRatio > zoomState.getMaxZoomRatio()) {
+                    nextZoomRatio = zoomState.getMaxZoomRatio();
+                }
+                return nextZoomRatio;
+            }
+        });
+    }
+
+    private void initZoomListener() {
+        mBinding.viewFinder.setOnTouchListener((v, event) -> {
+            if (scaleGestureDetector != null) {
+                scaleGestureDetector.onTouchEvent(event);
+            }
+
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                v.performClick();
+            }
+            return true;
+        });
     }
 }

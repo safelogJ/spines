@@ -16,6 +16,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.camera.core.Camera;
 import androidx.camera.core.CameraInfo;
 import androidx.camera.core.CameraInfoUnavailableException;
 import androidx.camera.core.CameraSelector;
@@ -63,6 +64,7 @@ public class RecorderService extends LifecycleService {
 
     public static final String VIDEO_FILE_PATH = "video_file_path";
     public static final String START_TIME = "start_time";
+    public static float zoomRatio = 1.0F;
     private static final String WAKELOCKTAG = "Spines::WakelockTag";
     private static final AtomicBoolean isRecorderServiceRun = new AtomicBoolean(false);
     private static final int MAX_DURATION_MILLIS = 60_000;
@@ -104,6 +106,7 @@ public class RecorderService extends LifecycleService {
     private CameraSelector frontCameraSelector;
     private CameraSelector defaultCameraSelector;
     private Clouds clouds;
+    private Camera currentCamera;
 
     public static boolean isServiceRun() {
         return isRecorderServiceRun.get();
@@ -117,6 +120,11 @@ public class RecorderService extends LifecycleService {
         preview.setSurfaceProvider(surfaceProvider);
         mainHandler.removeCallbacks(rebindCameraRunnable);
         mainHandler.postDelayed(rebindCameraRunnable, 1100);
+    }
+
+    @Nullable
+    public Camera getCurrentCamera() {
+        return currentCamera;
     }
 
     @Nullable
@@ -166,22 +174,23 @@ public class RecorderService extends LifecycleService {
 
 
     private void rebindCamera() {
-
         try {
             mainHandler.removeCallbacks(recordNextChunkRunnable);
             stopRecordingFile();
             cameraProvider.unbindAll();
             preview.setSurfaceProvider(surfaceProvider);
             if (surfaceProvider != null) {
-                cameraProvider.bindToLifecycle(this, getSelector(backCameraSelector), preview, videoCapture);
+                currentCamera = cameraProvider.bindToLifecycle(this, getSelector(backCameraSelector), preview, videoCapture);
+                currentCamera.getCameraControl().setZoomRatio(zoomRatio);
                 Log.i(AppController.LOG_TAG, "Привязка задней камеры");
             } else {
-                cameraProvider.bindToLifecycle(this, getSelector(frontCameraSelector), videoCapture);
+                currentCamera = cameraProvider.bindToLifecycle(this, getSelector(frontCameraSelector), videoCapture);
+                currentCamera.getCameraControl().setZoomRatio(1.0F);
+                currentCamera = null;
                 Log.i(AppController.LOG_TAG, "Привязка фронтальной камеры");
             }
             mainHandler.post(recordNextChunkRunnable);
-        } catch (IllegalStateException | IllegalArgumentException | UnsupportedOperationException |
-                 NullPointerException e) {
+        } catch (IllegalStateException | IllegalArgumentException | UnsupportedOperationException | NullPointerException e) {
             Log.d(AppController.LOG_TAG, "Rebinding camera failed", e);
         }
     }

@@ -6,13 +6,13 @@ plugins {
 
 configure<ApplicationExtension> {
     namespace = "com.safelogj.dfly"
-    compileSdk = 36
+    compileSdk = 37
 
 
     defaultConfig {
         applicationId = "com.safelogj.dfly"
         minSdk = 29
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 4
         versionName = "1.3"
 
