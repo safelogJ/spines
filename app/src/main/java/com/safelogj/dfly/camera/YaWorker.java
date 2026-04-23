@@ -55,7 +55,7 @@ public class YaWorker extends Worker  {
         }
     }
 
-    private void uploadToYandexDisk(File file, Clouds clouds) {
+    private void uploadToYandexDisk(File file, Clouds clouds) throws IllegalArgumentException {
 
         RequestBody body = RequestBody.create(file, MediaType.parse("video/mp4"));
 

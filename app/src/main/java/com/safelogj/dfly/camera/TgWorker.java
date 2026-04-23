@@ -50,7 +50,7 @@ public class TgWorker extends Worker  {
         long startTime = getInputData().getLong(RecorderService.START_TIME, 0);
         if (System.currentTimeMillis() - startTime > (2 * 24 * 60 * 60 * 1000L)) {
             Log.d(AppController.LOG_TAG, "2 Суток прошло, файл так и не ушел. Отмена.");
-            return Result.failure();
+            return Result.success();
         } else {
             return Result.retry();
         }
@@ -73,10 +73,11 @@ public class TgWorker extends Worker  {
 
         try (Response response = httpClient.newCall(request).execute()) {
             if (response.isSuccessful()) {
-                Files.deleteIfExists(file.toPath());
                 Log.d(AppController.LOG_TAG, "Видео успешно отправлено в TG = " + response.code());
                 return true;
-            } else if (response.code() == HttpURLConnection.HTTP_UNAUTHORIZED || response.code() == HttpURLConnection.HTTP_BAD_REQUEST) {
+            } else if (response.code() == HttpURLConnection.HTTP_UNAUTHORIZED
+                    || response.code() == HttpURLConnection.HTTP_BAD_REQUEST
+                    || response.code() == HttpURLConnection.HTTP_ENTITY_TOO_LARGE) {
                 Log.d(AppController.LOG_TAG, "Не верный токен или ID в телеграме: " + response.code());
                 return true;
             } else {

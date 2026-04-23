@@ -15,4 +15,8 @@
     <string name="tg_bot_token_help">telegram bot token</string>
     <string name="tg_user_id" translatable="false">9876543210</string>
     <string name="tg_user_id_help">telegram user id</string>
+    <string name="next_email" translatable="false">https://cloud.example.com/remote.php/dav/files/username/</string>
+    <string name="next_email_help">nextcloud login or folder link</string>
+    <string name="next_pass" translatable="false">nAg3o-5vR6W-282u4-gliml-P8RqY</string>
+    <string name="next_pass_help">application password in nextcloud</string>
 </resources>

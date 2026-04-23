@@ -7,4 +7,6 @@
     <string name="yandex_app_password_help">пароль приложения в яндекс почте</string>
     <string name="tg_bot_token_help">токен telegram бота</string>
     <string name="tg_user_id_help">id пользователя в telegram</string>
+    <string name="next_email_help">логин nextcloud или ссылка на папку</string>
+    <string name="next_pass_help">пароль приложения в nextcloud</string>
 </resources>

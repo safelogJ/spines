@@ -7,4 +7,6 @@
     <string name="yandex_app_password_help">yandex ईमेल में ऐप पासवर्ड</string>
     <string name="tg_bot_token_help">telegram बोट टोकन</string>
     <string name="tg_user_id_help">telegram में उपयोगकर्ता id</string>
+    <string name="next_email_help">nextcloud लॉगिन या फ़ोल्डर लिंक</string>
+    <string name="next_pass_help">nextcloud में एप्लिकेशन पासवर्ड</string>
 </resources>

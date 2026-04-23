@@ -49,6 +49,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 
+import okhttp3.Dispatcher;
 import okhttp3.OkHttpClient;
 
 public class AppController extends Application implements CameraXConfig.Provider {
@@ -60,7 +61,9 @@ public class AppController extends Application implements CameraXConfig.Provider
     private static final String TG_BOT_TOKEN = "tgBotToken";
     private static final String TG_CHAT_ID = "tgChatId";
     private static final String YA_ACC = "yaAcc";
-    private static final String APP_PASS = "appPass";
+    private static final String YA_APP_PASS = "appPass";
+    private static final String NEXTCLOUD_USERF = "nextCloudUserF";
+    private static final String NEXTCLOUD_PASS = "nextCloudPass";
     private static final String ENCRYPTED_DATA_KEY = "encryptedData";
     private static final String KEY_ALIAS = "SavedRouterKeyAlias";
     private static final String ANDROID_KEYSTORE = "AndroidKeyStore";
@@ -115,11 +118,17 @@ public class AppController extends Application implements CameraXConfig.Provider
         createNotificationChannel();
         initBatteryIcons();
         readCloudsEncrypted();
+
+        Dispatcher dispatcher = new Dispatcher();
+        dispatcher.setMaxRequests(3); // Всего не более 3-х активных задач в сети
+        dispatcher.setMaxRequestsPerHost(1); // Не даем одному облаку забить весь канал несколькими потоками
+
         okHttpClient = new OkHttpClient.Builder()
-                .connectTimeout(15, TimeUnit.SECONDS) // Время на установку связи
-                .writeTimeout(5, TimeUnit.MINUTES)   // Время на отправку данных (для POST)
-                .readTimeout(30, TimeUnit.SECONDS)    // Время на ожидание ответа
-                .callTimeout(9, TimeUnit.MINUTES) // Общее время на весь запрос с ответом, чтоб не переподключалось много раз
+                .dispatcher(dispatcher)
+                .connectTimeout(30, TimeUnit.SECONDS) // Время на установку связи
+                .writeTimeout(25, TimeUnit.MINUTES)   // Время на отправку данных (для POST)
+                .readTimeout(30, TimeUnit.SECONDS)  // Время на ожидание подтверждения получения данных
+                .callTimeout(30, TimeUnit.MINUTES)  // Общее время на весь запрос с ответом, чтоб не переподключалось много раз
                 .retryOnConnectionFailure(true)
                 .build();
     }
@@ -180,19 +189,27 @@ public class AppController extends Application implements CameraXConfig.Provider
         cloudsJson.put(TG_CHAT_ID, tgChatId != null ? tgChatId : EMPTY_STRING);
         String yaAcc = clouds.getYaAcc();
         cloudsJson.put(YA_ACC, yaAcc != null ? yaAcc : EMPTY_STRING);
-        String appPass = clouds.getAppPass();
-        cloudsJson.put(APP_PASS, appPass != null ? appPass : EMPTY_STRING);
+        String appPass = clouds.getYaAppPass();
+        cloudsJson.put(YA_APP_PASS, appPass != null ? appPass : EMPTY_STRING);
+        String nextUserF = clouds.getNextUserField();
+        cloudsJson.put(NEXTCLOUD_USERF, nextUserF != null ? nextUserF : EMPTY_STRING);
+        String nextPass = clouds.getNextCloudPass();
+        cloudsJson.put(NEXTCLOUD_PASS, nextPass != null ? nextPass : EMPTY_STRING);
     }
 
     private void readCloudsFromJson(JSONObject cloudsJson, Clouds clouds) {
         String tgBotToken = cloudsJson.optString(TG_BOT_TOKEN, EMPTY_STRING);
         String tgChatId = cloudsJson.optString(TG_CHAT_ID, EMPTY_STRING);
         String yaAcc = cloudsJson.optString(YA_ACC, EMPTY_STRING);
-        String appPass = cloudsJson.optString(APP_PASS, EMPTY_STRING);
+        String appPass = cloudsJson.optString(YA_APP_PASS, EMPTY_STRING);
+        String nextUserF = cloudsJson.optString(NEXTCLOUD_USERF, EMPTY_STRING);
+        String nextPass = cloudsJson.optString(NEXTCLOUD_PASS, EMPTY_STRING);
         clouds.setTgBotToken(tgBotToken);
         clouds.setTgChatId(tgChatId);
         clouds.setYaAcc(yaAcc);
-        clouds.setAppPass(appPass);
+        clouds.setYaAppPass(appPass);
+        clouds.setNextUserField(nextUserF);
+        clouds.setNextCloudPass(nextPass);
     }
 
     private void readCloudsEncrypted() {

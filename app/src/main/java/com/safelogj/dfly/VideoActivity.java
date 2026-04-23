@@ -152,20 +152,26 @@ public class VideoActivity extends AppCompatActivity {
 
     private void readFromCloudsToFields() {
         mBinding.yandexMailEditText.setText(clouds.getYaAcc());
-        mBinding.yandexAppPassEditText.setText(clouds.getAppPass());
+        mBinding.yandexAppPassEditText.setText(clouds.getYaAppPass());
         mBinding.tgTokenEditText.setText(clouds.getTgBotToken());
         mBinding.tgIdEditText.setText(clouds.getTgChatId());
+        mBinding.nextUserFEditText.setText(clouds.getNextUserField());
+        mBinding.nextPassEditText.setText(clouds.getNextCloudPass());
     }
 
     private void writeFromFieldsToClouds() {
         Editable yaAcc = mBinding.yandexMailEditText.getText();
         clouds.setYaAcc(yaAcc == null ? AppController.EMPTY_STRING : yaAcc.toString().trim());
         Editable appPass = mBinding.yandexAppPassEditText.getText();
-        clouds.setAppPass(appPass == null ? AppController.EMPTY_STRING : appPass.toString().trim());
+        clouds.setYaAppPass(appPass == null ? AppController.EMPTY_STRING : appPass.toString().trim());
         Editable tgToken = mBinding.tgTokenEditText.getText();
         clouds.setTgBotToken(tgToken == null ? AppController.EMPTY_STRING : tgToken.toString().trim());
         Editable tgId = mBinding.tgIdEditText.getText();
         clouds.setTgChatId(tgId == null ? AppController.EMPTY_STRING : tgId.toString().trim());
+        Editable nextUserF = mBinding.nextUserFEditText.getText();
+        clouds.setNextUserField(nextUserF == null ? AppController.EMPTY_STRING : nextUserF.toString().trim());
+        Editable nextPass = mBinding.nextPassEditText.getText();
+        clouds.setNextCloudPass(nextPass == null ? AppController.EMPTY_STRING : nextPass.toString().trim());
         controller.writeCloudsEncrypted();
     }
 

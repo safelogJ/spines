@@ -7,4 +7,6 @@
     <string name="yandex_app_password_help">kata laluan aplikasi dalam emel yandex</string>
     <string name="tg_bot_token_help">token bot telegram</string>
     <string name="tg_user_id_help">id pengguna di telegram</string>
+    <string name="next_email_help">log masuk nextcloud atau pautan folder</string>
+    <string name="next_pass_help">kata laluan aplikasi dalam nextcloud</string>
 </resources>

@@ -219,6 +219,64 @@
                             android:textColor="@color/black3" />
                     </com.google.android.material.textfield.TextInputLayout>
 
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/nextEmailInputLayout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:hint="@string/next_email"
+
+
+                        android:textColorHint="@color/gray400"
+                        app:boxStrokeColor="@color/text_input_stroke_color"
+                        app:boxStrokeWidth="1dp"
+                        app:boxStrokeWidthFocused="2dp"
+                        app:endIconMode="password_toggle"
+                        app:endIconTint="@color/black3"
+                        app:errorEnabled="true"
+                        app:helperText="@string/next_email_help"
+                        app:helperTextTextColor="@color/green_a700"
+                        app:hintTextColor="@color/text_input_hint_color"
+                        app:passwordToggleTint="@color/black3">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/nextUserFEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPassword"
+                            android:textColor="@color/black3" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/nextPassInputLayout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:hint="@string/next_pass"
+
+
+                        android:textColorHint="@color/gray400"
+                        app:boxStrokeColor="@color/text_input_stroke_color"
+                        app:boxStrokeWidth="1dp"
+                        app:boxStrokeWidthFocused="2dp"
+                        app:endIconMode="password_toggle"
+                        app:endIconTint="@color/black3"
+                        app:errorEnabled="true"
+                        app:helperText="@string/next_pass_help"
+                        app:helperTextTextColor="@color/green_a700"
+                        app:hintTextColor="@color/text_input_hint_color"
+                        app:passwordToggleTint="@color/black3">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/nextPassEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPassword"
+                            android:textColor="@color/black3" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>
 

@@ -37,11 +37,13 @@ import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.Data;
 import androidx.work.ExistingWorkPolicy;
+import androidx.work.ListenableWorker;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkContinuation;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
+import androidx.work.Worker;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.safelogj.dfly.AppController;
@@ -52,9 +54,12 @@ import com.safelogj.dfly.R;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -67,8 +72,11 @@ public class RecorderService extends LifecycleService {
     public static float zoomRatio = 1.0F;
     private static final String WAKELOCKTAG = "Spines::WakelockTag";
     private static final AtomicBoolean isRecorderServiceRun = new AtomicBoolean(false);
-    private static final int MAX_DURATION_MILLIS = 60_000;
+    private static final int MAX_DURATION_MILLIS = 30_000;
     private static final int STEP_MILLIS = 10_000;
+    private static final String YA_QUEUE = "yaQueue";
+    private static final String NX_QUEUE = "nxQueue";
+    private static final String TG_QUEUE = "tgQueue";
     private final IBinder mBinder = new LocalBinder();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy_HH-mm-ss", Locale.US);
@@ -190,7 +198,8 @@ public class RecorderService extends LifecycleService {
                 Log.i(AppController.LOG_TAG, "Привязка фронтальной камеры");
             }
             mainHandler.post(recordNextChunkRunnable);
-        } catch (IllegalStateException | IllegalArgumentException | UnsupportedOperationException | NullPointerException e) {
+        } catch (IllegalStateException | IllegalArgumentException | UnsupportedOperationException |
+                 NullPointerException e) {
             Log.d(AppController.LOG_TAG, "Rebinding camera failed", e);
         }
     }
@@ -211,12 +220,10 @@ public class RecorderService extends LifecycleService {
                     if (event instanceof VideoRecordEvent.Finalize finalizeEvent) {
                         if (!finalizeEvent.hasError()) {
                             Log.d(AppController.LOG_TAG, "Файл записан: " + videoFile.getAbsolutePath());
-                            if (clouds.isValidTg() || clouds.isValidYaDisk()) {
-                                uploadWithWorkers(videoFile.getAbsolutePath());
-                            }
-
+                            uploadWithWorkers(videoFile.getAbsolutePath());
                         } else {
                             Log.d(AppController.LOG_TAG, "Ошибка записи: " + finalizeEvent.getError());
+                            //  VideoRecordEvent.Finalize.ERROR_SOURCE_INACTIVE
                             if (videoFile.exists() && !videoFile.delete()) {
                                 Log.d(AppController.LOG_TAG, "Ошибка удаления повреждённой записи: " + finalizeEvent.getError());
                             }
@@ -232,41 +239,48 @@ public class RecorderService extends LifecycleService {
     }
 
     private void uploadWithWorkers(String path) {
-        Data inputData = new Data.Builder()
-                .putString(VIDEO_FILE_PATH, path)
-                .putLong(START_TIME, System.currentTimeMillis())
-                .build();
+        Map<String, Class<? extends ListenableWorker>> workers = getWorkers();
+        if (workers.isEmpty()) return;
 
-        WorkContinuation continuation = null;
+        Data inputData = new Data.Builder().putString(VIDEO_FILE_PATH, path).putLong(START_TIME, System.currentTimeMillis()).build();
+        for (Map.Entry<String, Class<? extends ListenableWorker>> worker : workers.entrySet()) {
+            WorkManager.getInstance(this)
+                    .beginUniqueWork(worker.getKey(), ExistingWorkPolicy.APPEND_OR_REPLACE, getSendRequest(worker.getValue(), inputData)).enqueue();
+        }
+        WorkManager.getInstance(this)
+                .beginUniqueWork(path, ExistingWorkPolicy.KEEP, getRemoveRequest(inputData)).enqueue();
+    }
 
+    @NonNull
+    private Map<String, Class<? extends ListenableWorker>> getWorkers() {
+        Map<String, Class<? extends ListenableWorker>> workers = new HashMap<>(3);
         if (clouds.isValidYaDisk()) {
-            OneTimeWorkRequest yaRequest = new OneTimeWorkRequest.Builder(YaWorker.class)
-                    .setConstraints(constraints)
-                    .setInputData(inputData)
-                    .setBackoffCriteria(BackoffPolicy.LINEAR, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
-                    .build();
-
-            continuation = WorkManager.getInstance(this).beginUniqueWork(path, ExistingWorkPolicy.KEEP, yaRequest);
+            workers.put(YA_QUEUE, YaWorker.class);
         }
-
         if (clouds.isValidTg()) {
-            OneTimeWorkRequest tgRequest = new OneTimeWorkRequest.Builder(TgWorker.class)
-                    .setConstraints(constraints)
-                    .setInputData(inputData)
-                    .setBackoffCriteria(BackoffPolicy.LINEAR, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
-                    .build();
-
-            if (continuation == null) {
-                continuation = WorkManager.getInstance(this).beginUniqueWork(path, ExistingWorkPolicy.KEEP, tgRequest);
-            } else {
-                continuation = continuation.then(tgRequest);
-            }
+            workers.put(TG_QUEUE, TgWorker.class);
         }
 
-        if (continuation != null) {
-            continuation.enqueue();
+        if (clouds.isValidNextCloud()) {
+            workers.put(NX_QUEUE, NxWorker.class);
         }
+        return workers;
+    }
 
+    private OneTimeWorkRequest getSendRequest(Class<? extends ListenableWorker> workerClass, Data inputData) {
+        return new OneTimeWorkRequest.Builder(workerClass)
+                .setConstraints(constraints)
+                .setInputData(inputData)
+                .setBackoffCriteria(BackoffPolicy.LINEAR, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
+                .build();
+    }
+
+    private OneTimeWorkRequest getRemoveRequest(Data inputData) {
+        return new OneTimeWorkRequest.Builder(FileRemoveWorker.class)
+                .setInitialDelay(2, TimeUnit.DAYS)
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 1, TimeUnit.HOURS)
+                .setInputData(inputData)
+                .build();
     }
 
     private void stopRecordingFile() {
@@ -300,7 +314,8 @@ public class RecorderService extends LifecycleService {
         if (powerManager == null || mWakeLock == null) {
             AppController controller = (AppController) getApplication();
             clouds = controller.getSavedClouds();
-            clouds.buildCredentials();
+            clouds.buildYaCredentials();
+            clouds.buildNextCredentials();
             powerManager = controller.getPowerManager();
             if (powerManager != null) {
                 if (mWakeLock == null) {

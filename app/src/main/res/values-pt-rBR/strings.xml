@@ -7,4 +7,6 @@
     <string name="yandex_app_password_help">senha de aplicativo no e-mail do yandex</string>
     <string name="tg_bot_token_help">token do bot do telegram</string>
     <string name="tg_user_id_help">id de usuário no telegram</string>
+    <string name="next_email_help">login do nextcloud ou link da pasta</string>
+    <string name="next_pass_help">senha do aplicativo no nextcloud</string>
 </resources>
