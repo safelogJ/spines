@@ -13,7 +13,6 @@ import com.safelogj.dfly.Clouds;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.nio.file.Files;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;

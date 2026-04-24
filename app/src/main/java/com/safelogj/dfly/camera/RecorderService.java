@@ -243,12 +243,16 @@ public class RecorderService extends LifecycleService {
         if (workers.isEmpty()) return;
 
         Data inputData = new Data.Builder().putString(VIDEO_FILE_PATH, path).putLong(START_TIME, System.currentTimeMillis()).build();
+
         for (Map.Entry<String, Class<? extends ListenableWorker>> worker : workers.entrySet()) {
             WorkManager.getInstance(this)
-                    .beginUniqueWork(worker.getKey(), ExistingWorkPolicy.APPEND_OR_REPLACE, getSendRequest(worker.getValue(), inputData)).enqueue();
+                    .beginUniqueWork(worker.getKey(), ExistingWorkPolicy.APPEND_OR_REPLACE, getSendRequest(worker.getValue(), inputData))
+                    .enqueue();
         }
+
         WorkManager.getInstance(this)
-                .beginUniqueWork(path, ExistingWorkPolicy.KEEP, getRemoveRequest(inputData)).enqueue();
+                .beginUniqueWork(path, ExistingWorkPolicy.KEEP, getRemoveRequest(inputData))
+                .enqueue();
     }
 
     @NonNull

@@ -73,10 +73,10 @@ public class NxWorker extends Worker {
                     || response.code() == HttpURLConnection.HTTP_BAD_GATEWAY
                     || response.code() == HttpURLConnection.HTTP_UNAUTHORIZED
                     || response.code() == HttpURLConnection.HTTP_NOT_FOUND) {
-                Log.e(AppController.LOG_TAG, "Ошибка отправки Next неудача : код = " + response.code());
+                Log.d(AppController.LOG_TAG, "Ошибка отправки Next неудача : код = " + response.code());
                 return true;
             } else {
-                Log.e(AppController.LOG_TAG, "Ошибка отправки Next: код = " + response.code());
+                Log.d(AppController.LOG_TAG, "Ошибка отправки Next: код = " + response.code());
                 return false;
             }
         } catch (IOException e) {
