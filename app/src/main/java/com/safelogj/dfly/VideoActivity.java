@@ -9,6 +9,7 @@ import android.content.pm.ResolveInfo;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -20,6 +21,9 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
@@ -100,6 +104,16 @@ public class VideoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         mBinding = ActivityVideoBinding.inflate(getLayoutInflater());
+
+        getWindow().setFlags(
+                WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE
+        );
+        mBinding.secureLayout.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
+        mBinding.secureLayout.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS); // Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+        initAccessibilityDelegate();
+        initSecurityMeasures();
+
         setContentView(mBinding.getRoot());
         ViewCompat.setOnApplyWindowInsetsListener(mBinding.inner, (v, insets) -> {
             Insets systemInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -331,5 +345,83 @@ public class VideoActivity extends AppCompatActivity {
             }
             return true;
         });
+    }
+
+    private void initAccessibilityDelegate() {
+        View.AccessibilityDelegate scrubbingDelegate = new View.AccessibilityDelegate() {
+            @Override
+            public void sendAccessibilityEventUnchecked(@NonNull View host, @NonNull AccessibilityEvent event) {
+                scrubEvent(event);
+                super.sendAccessibilityEventUnchecked(host, event);
+            }
+
+            @Override
+            public void onInitializeAccessibilityEvent(@NonNull View host, @NonNull AccessibilityEvent event) {
+                super.onInitializeAccessibilityEvent(host, event);
+                scrubEvent(event);
+            }
+
+            @Override
+            public void onInitializeAccessibilityNodeInfo(@NonNull View host, @NonNull AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                scrubNode(info);
+            }
+
+            @Override
+            public boolean performAccessibilityAction(@NonNull View host, int action, Bundle args) {
+                // Запрещаем сервисам доступности кликать или вводить текст за пользователя
+                return false;
+            }
+        };
+        mBinding.yandexMailEditText.setAccessibilityDelegate(scrubbingDelegate);
+        mBinding.yandexAppPassEditText.setAccessibilityDelegate(scrubbingDelegate);
+        mBinding.tgTokenEditText.setAccessibilityDelegate(scrubbingDelegate);
+        mBinding.tgIdEditText.setAccessibilityDelegate(scrubbingDelegate);
+        mBinding.nextUserFEditText.setAccessibilityDelegate(scrubbingDelegate);
+        mBinding.nextPassEditText.setAccessibilityDelegate(scrubbingDelegate);
+    }
+
+    // 1. Метод для очистки события (удаляем текст и описания)
+    private void scrubEvent(AccessibilityEvent event) {
+        event.getText().clear();
+        event.setContentDescription(null);
+    }
+
+    // 2. Метод для обнуления информации об узле (удаляем всё: от текста до ID)
+    private void scrubNode(AccessibilityNodeInfo info) {
+        info.setText(null);
+        info.setHintText(null);
+        info.setContentDescription(null);
+        info.setViewIdResourceName(null); // Скрываем ID поля, чтобы нельзя было понять, что это за поле
+        info.setClassName(View.class.getName()); // Притворяемся обычным View
+
+        // Делаем элемент "невидимым" для действий сервиса
+        info.setClickable(false);
+        info.setFocusable(false);
+        info.getExtras().clear(); // Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
+
+    }
+
+    private void initSecurityMeasures() {
+        applySecurityMeasures(mBinding.yandexMailEditText);
+        applySecurityMeasures(mBinding.yandexAppPassEditText);
+        applySecurityMeasures(mBinding.tgTokenEditText);
+        applySecurityMeasures(mBinding.tgIdEditText);
+        applySecurityMeasures(mBinding.nextUserFEditText);
+        applySecurityMeasures(mBinding.nextPassEditText);
+    }
+
+    // Создаем метод для комплексной пометки поля как "секретного"
+    private void applySecurityMeasures(View view) {
+        // 1. Блокируем нажатия, если экран чем-то перекрыт
+        view.setFilterTouchesWhenObscured(true);
+
+        // 2. Для новых версий Android (14+) включаем системную метку чувствительных данных
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            view.setAccessibilityDataSensitive(View.ACCESSIBILITY_DATA_SENSITIVE_YES);
+        }
+        // 3. Убираем подсказки автозаполнения на уровне самого поля
+        view.setAutofillHints(""); // Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+
     }
 }

@@ -14,7 +14,6 @@ import com.safelogj.dfly.VideoFileTicket;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.util.List;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -33,13 +32,16 @@ public class TgWorker extends Worker {
     public Result doWork() {
         AppController controller = (AppController) getApplicationContext();
         Clouds clouds = controller.getSavedClouds();
-        List<VideoFileTicket> videoFileTicketList = clouds.getVideoFileTicketList();
-
-        for (VideoFileTicket ticket : videoFileTicketList) {
+        if (!clouds.getTgLock().tryLock()) {
+            Log.d(AppController.LOG_TAG, Thread.currentThread().getName() +" TG Занято другим воркером, выхожу.");
+            return Result.success();
+        }
+        Log.d(AppController.LOG_TAG, Thread.currentThread().getName() + " TG Захват лока.");
+        for (VideoFileTicket ticket : clouds.getVideoFileTicketList()) {
             if (ticket.isNeedSendTg()) {
                 File file = new File(ticket.getPath());
                 if (file.exists() && System.currentTimeMillis() - ticket.getDateMillis() < 172_800_000L) {
-                    Log.d(AppController.LOG_TAG, "doWork Tg = ");
+                    Log.d(AppController.LOG_TAG, "doWork Tg = попытка отправки файла");
                     try {
                         if (uploadToTelegram(file, clouds)) {
                             ticket.setNeedSendTg(false);
@@ -53,7 +55,18 @@ public class TgWorker extends Worker {
                 }
             }
         }
-        return (videoFileTicketList.stream().anyMatch(VideoFileTicket::isNeedSendTg)) ? Result.retry() : Result.success();
+        if (clouds.getVideoFileTicketList().stream().anyMatch(VideoFileTicket::isNeedSendTg)) {
+            clouds.getTgLock().unlock();
+            Log.d(AppController.LOG_TAG, "TgLock отпущен.");
+            return Result.retry();
+        } else {
+            if (!RecorderService.isServiceRun()) {
+                controller.writeTicketsToFile();
+            }
+            clouds.getTgLock().unlock();
+            Log.d(AppController.LOG_TAG, "TgLock отпущен.");
+            return Result.success();
+        }
     }
 
     private boolean uploadToTelegram(File file, Clouds clouds) throws IllegalArgumentException {
@@ -71,7 +84,7 @@ public class TgWorker extends Worker {
 
         try (Response response = ((AppController) getApplicationContext()).getOkHttpClient().newCall(request).execute()) {
             if (response.isSuccessful()) {
-                Log.d(AppController.LOG_TAG, "Видео успешно отправлено в TG = " + response.code());
+                Log.d(AppController.LOG_TAG, "Видео успешно отправлено в TG = " + response.code() + " " + file.getName());
                 return true;
             } else if (response.code() == HttpURLConnection.HTTP_UNAUTHORIZED
                     || response.code() == HttpURLConnection.HTTP_BAD_REQUEST

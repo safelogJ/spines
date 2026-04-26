@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.ReentrantLock;
 
 import okhttp3.Credentials;
 
@@ -12,6 +13,9 @@ public class Clouds {
     private static final String DEFAULT_URL = "https://ivo.lv.tab.digital/remote.php/dav/files/";
     private static final String MARKER = "/remote.php/dav/files/";
     private static final String SLASH = "/";
+    private final ReentrantLock yaLock = new ReentrantLock();
+    private final ReentrantLock tgLock = new ReentrantLock();
+    private final ReentrantLock nxLock = new ReentrantLock();
     @NonNull
     private final List<VideoFileTicket> videoFileTicketList = new CopyOnWriteArrayList<>();
     private String tgBotToken = AppController.EMPTY_STRING;
@@ -24,6 +28,10 @@ public class Clouds {
     private String nextCloudLogin = AppController.EMPTY_STRING;
     private String nextCloudPass = AppController.EMPTY_STRING;
     private String nextUserField = AppController.EMPTY_STRING;
+
+    public ReentrantLock getYaLock() { return yaLock; }
+    public ReentrantLock getTgLock() { return tgLock; }
+    public ReentrantLock getNxLock() { return nxLock; }
 
 
     public String getTgBotToken() {

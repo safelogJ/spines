@@ -14,8 +14,6 @@ import com.safelogj.dfly.VideoFileTicket;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.util.ArrayList;
-import java.util.List;
 
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -31,12 +29,14 @@ public class YaWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-
         AppController controller = (AppController) getApplicationContext();
         Clouds clouds = controller.getSavedClouds();
-        List<VideoFileTicket> videoFileTicketList = clouds.getVideoFileTicketList();
-
-        for (VideoFileTicket ticket : videoFileTicketList) {
+        if (!clouds.getYaLock().tryLock()) {
+            Log.d(AppController.LOG_TAG, Thread.currentThread().getName() +" YA Занято другим воркером, выхожу.");
+            return Result.success();
+        }
+        Log.d(AppController.LOG_TAG, Thread.currentThread().getName() + " YA Захват лока.");
+        for (VideoFileTicket ticket : clouds.getVideoFileTicketList()) {
             if (ticket.isNeedSendYa()) {
                 File file = new File(ticket.getPath());
                 if (file.exists()) {
@@ -56,7 +56,19 @@ public class YaWorker extends Worker {
                 }
             }
         }
-        return (videoFileTicketList.stream().anyMatch(VideoFileTicket::isNeedSendYa)) ? Result.retry() : Result.success();
+
+        if (clouds.getVideoFileTicketList().stream().anyMatch(VideoFileTicket::isNeedSendYa)) {
+            clouds.getYaLock().unlock();
+            Log.d(AppController.LOG_TAG, "YaLock отпущен.");
+            return Result.retry();
+        } else {
+            if (!RecorderService.isServiceRun()) {
+                controller.writeTicketsToFile();
+            }
+            clouds.getYaLock().unlock();
+            Log.d(AppController.LOG_TAG, "YaLock отпущен.");
+            return Result.success();
+        }
     }
 
     private void uploadToYandexDisk(File file, Clouds clouds) throws IllegalArgumentException {
@@ -70,8 +82,9 @@ public class YaWorker extends Worker {
         try (Response response = ((AppController) getApplicationContext()).getOkHttpClient().newCall(request).execute()) {
             if (response.isSuccessful()
                     || response.code() == HttpURLConnection.HTTP_PRECON_FAILED
+                    || response.code() == 423 // Locked
                     || response.code() == 507) { // Недостаточно места в памяти
-                Log.d(AppController.LOG_TAG, "Файл успешно загружен или нет места в облаке! = Ya" + response.code());
+                Log.d(AppController.LOG_TAG, "Файл успешно загружен или нет места в облаке! = Ya " + response.code());
             } else {
                 Log.d(AppController.LOG_TAG, "Ошибка: в ответе Ya " + response.code() + " " + response.message());
             }

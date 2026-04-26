@@ -96,9 +96,12 @@
                 app:layout_constraintTop_toBottomOf="@+id/batteryButton">
 
                 <LinearLayout
+                    android:id="@+id/secureLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:importantForAccessibility="noHideDescendants"
+                    android:filterTouchesWhenObscured="true">
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/yandexMailInputLayout"

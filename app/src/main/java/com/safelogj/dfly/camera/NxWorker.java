@@ -14,7 +14,6 @@ import com.safelogj.dfly.VideoFileTicket;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.util.List;
 
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -32,9 +31,12 @@ public class NxWorker extends Worker {
     public Result doWork() {
         AppController controller = (AppController) getApplicationContext();
         Clouds clouds = controller.getSavedClouds();
-        List<VideoFileTicket> videoFileTicketList = clouds.getVideoFileTicketList();
-
-        for (VideoFileTicket ticket : videoFileTicketList) {
+        if (!clouds.getNxLock().tryLock()) {
+            Log.d(AppController.LOG_TAG, Thread.currentThread().getName() +" NX Занято другим воркером, выхожу.");
+            return Result.success();
+        }
+        Log.d(AppController.LOG_TAG, Thread.currentThread().getName() + " NX Захват лока.");
+        for (VideoFileTicket ticket : clouds.getVideoFileTicketList()) {
             if (ticket.isNeedSendNx()) {
                 File file = new File(ticket.getPath());
                 if (file.exists() && System.currentTimeMillis() - ticket.getDateMillis() < 172_800_000L) {
@@ -52,7 +54,18 @@ public class NxWorker extends Worker {
                 }
             }
         }
-        return (videoFileTicketList.stream().anyMatch(VideoFileTicket::isNeedSendNx)) ? Result.retry() : Result.success();
+        if (clouds.getVideoFileTicketList().stream().anyMatch(VideoFileTicket::isNeedSendNx)) {
+            clouds.getNxLock().unlock();
+            Log.d(AppController.LOG_TAG, "NxLock отпущен.");
+            return Result.retry();
+        } else {
+            if (!RecorderService.isServiceRun()) {
+                controller.writeTicketsToFile();
+            }
+            clouds.getNxLock().unlock();
+            Log.d(AppController.LOG_TAG, "NxLock отпущен.");
+            return Result.success();
+        }
     }
 
     private boolean uploadToNextCloud(File file, Clouds clouds) throws IllegalArgumentException {
@@ -64,7 +77,7 @@ public class NxWorker extends Worker {
 
         try (Response response = ((AppController) getApplicationContext()).getOkHttpClient().newCall(request).execute()) {
             if (response.isSuccessful()) {
-                Log.d(AppController.LOG_TAG, "Файл успешно загружен Next ");
+                Log.d(AppController.LOG_TAG, "Файл успешно загружен Next " + " " + file.getName());
                 return true;
             } else if (response.code() == HttpURLConnection.HTTP_FORBIDDEN
                     || response.code() == HttpURLConnection.HTTP_BAD_GATEWAY

@@ -24,11 +24,16 @@ import androidx.core.content.ContextCompat;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
@@ -138,14 +143,14 @@ public class AppController extends Application implements CameraXConfig.Provider
 
         Dispatcher dispatcher = new Dispatcher();
         dispatcher.setMaxRequests(3); // Всего не более 3-х активных задач в сети 1-3
-        dispatcher.setMaxRequestsPerHost(1); // Не даем одному облаку забить весь канал несколькими потоками 3
+        dispatcher.setMaxRequestsPerHost(3); // Не даем одному облаку забить весь канал несколькими потоками 3
 
         okHttpClient = new OkHttpClient.Builder()
-                .dispatcher(dispatcher)
+                 // .dispatcher(dispatcher)
                 .connectTimeout(30, TimeUnit.SECONDS) // Время на установку связи
-                .writeTimeout(25, TimeUnit.MINUTES)   // Время на отправку данных (для POST)
+                .writeTimeout(25, TimeUnit.MINUTES)   // Время на отправку данных (для POST) 25
                 .readTimeout(30, TimeUnit.SECONDS)  // Время на ожидание подтверждения получения данных
-                .callTimeout(30, TimeUnit.MINUTES)  // Общее время на весь запрос с ответом, чтоб не переподключалось много раз
+                .callTimeout(30, TimeUnit.MINUTES)  // Общее время на весь запрос с ответом, чтоб не переподключалось много раз 30
                 .retryOnConnectionFailure(true)
                 .build();
     }
@@ -226,7 +231,8 @@ public class AppController extends Application implements CameraXConfig.Provider
             File tempFile = new File(ticketsListDir, FILES_JSON + ".tmp");
             File finalFile = new File(ticketsListDir, FILES_JSON);
             boolean isSuccess = false;
-            try (JsonWriter writer = new JsonWriter(new BufferedWriter(new FileWriter(tempFile)))) {
+            try (JsonWriter writer = new JsonWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tempFile),
+                    StandardCharsets.UTF_8), 32768))) {
                 writer.beginObject();
                 writer.name(TICKET_LIST);
                 writer.beginArray();
@@ -259,14 +265,14 @@ public class AppController extends Application implements CameraXConfig.Provider
     }
 
     private void writeTicket(JsonWriter writer, VideoFileTicket ticket) throws IOException {
-            writer.beginObject();
-            writer.name(TICKET_PATH).value(ticket.getPath());
-            writer.name(TICKET_DATE).value(ticket.getDateMillis());
-            writer.name(TICKET_YA_SEND).value(ticket.isNeedSendYa());
-            writer.name(TICKET_TG_SEND).value(ticket.isNeedSendTg());
-            writer.name(TICKET_NX_SEND).value(ticket.isNeedSendNx());
-            writer.name(TICKET_REMOVE).value(ticket.isNeedRemove());
-            writer.endObject();
+        writer.beginObject();
+        writer.name(TICKET_PATH).value(ticket.getPath());
+        writer.name(TICKET_DATE).value(ticket.getDateMillis());
+        writer.name(TICKET_YA_SEND).value(ticket.isNeedSendYa());
+        writer.name(TICKET_TG_SEND).value(ticket.isNeedSendTg());
+        writer.name(TICKET_NX_SEND).value(ticket.isNeedSendNx());
+        writer.name(TICKET_REMOVE).value(ticket.isNeedRemove());
+        writer.endObject();
     }
 
     private void readCloudsFromJson(JSONObject cloudsJson) {
@@ -340,7 +346,8 @@ public class AppController extends Application implements CameraXConfig.Provider
 
             List<VideoFileTicket> tempList = new ArrayList<>();
 
-            try (JsonReader reader = new JsonReader(new FileReader(ticketsListFile))) {
+            try (JsonReader reader = new JsonReader(new BufferedReader(new InputStreamReader(new FileInputStream(ticketsListFile),
+                    StandardCharsets.UTF_8), 32768))) {
                 reader.beginObject(); // Входим в главный объект {
                 while (reader.hasNext()) {
                     String name = reader.nextName();
@@ -372,13 +379,27 @@ public class AppController extends Application implements CameraXConfig.Provider
         while (reader.hasNext()) {
             String name = reader.nextName();
             switch (name) {
-                case TICKET_PATH: ticket.setPath(reader.nextString()); break;
-                case TICKET_DATE: ticket.setDateMillis(reader.nextLong()); break;
-                case TICKET_YA_SEND: ticket.setNeedSendYa(reader.nextBoolean()); break;
-                case TICKET_TG_SEND: ticket.setNeedSendTg(reader.nextBoolean()); break;
-                case TICKET_NX_SEND: ticket.setNeedSendNx(reader.nextBoolean()); break;
-                case TICKET_REMOVE: ticket.setNeedRemove(reader.nextBoolean()); break;
-                default: reader.skipValue(); break;
+                case TICKET_PATH:
+                    ticket.setPath(reader.nextString());
+                    break;
+                case TICKET_DATE:
+                    ticket.setDateMillis(reader.nextLong());
+                    break;
+                case TICKET_YA_SEND:
+                    ticket.setNeedSendYa(reader.nextBoolean());
+                    break;
+                case TICKET_TG_SEND:
+                    ticket.setNeedSendTg(reader.nextBoolean());
+                    break;
+                case TICKET_NX_SEND:
+                    ticket.setNeedSendNx(reader.nextBoolean());
+                    break;
+                case TICKET_REMOVE:
+                    ticket.setNeedRemove(reader.nextBoolean());
+                    break;
+                default:
+                    reader.skipValue();
+                    break;
             }
         }
         reader.endObject();
