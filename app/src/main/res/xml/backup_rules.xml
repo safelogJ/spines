@@ -7,4 +7,5 @@
 -->
 <full-backup-content>
     <include domain="file" path="clouds/clouds.txt"/>
+    <include domain="file" path="files/files.txt"/>
 </full-backup-content>

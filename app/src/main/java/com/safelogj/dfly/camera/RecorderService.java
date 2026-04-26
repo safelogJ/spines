@@ -35,15 +35,14 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleService;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
-import androidx.work.Data;
+import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.ListenableWorker;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkContinuation;
+import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
-import androidx.work.Worker;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.safelogj.dfly.AppController;
@@ -51,10 +50,10 @@ import com.safelogj.dfly.AppController;
 import com.safelogj.dfly.Clouds;
 import com.safelogj.dfly.NotificationActivity;
 import com.safelogj.dfly.R;
+import com.safelogj.dfly.VideoFileTicket;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -67,16 +66,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RecorderService extends LifecycleService {
 
-    public static final String VIDEO_FILE_PATH = "video_file_path";
-    public static final String START_TIME = "start_time";
     public static float zoomRatio = 1.0F;
+    public static final String YA_QUEUE = "yaQueue";
+    public static final String NX_QUEUE = "nxQueue";
+    public static final String TG_QUEUE = "tgQueue";
+    public static final String REMOVE_QUEUE = "removeQueue";
     private static final String WAKELOCKTAG = "Spines::WakelockTag";
     private static final AtomicBoolean isRecorderServiceRun = new AtomicBoolean(false);
     private static final int MAX_DURATION_MILLIS = 30_000;
     private static final int STEP_MILLIS = 10_000;
-    private static final String YA_QUEUE = "yaQueue";
-    private static final String NX_QUEUE = "nxQueue";
-    private static final String TG_QUEUE = "tgQueue";
     private final IBinder mBinder = new LocalBinder();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy_HH-mm-ss", Locale.US);
@@ -160,6 +158,7 @@ public class RecorderService extends LifecycleService {
 
     @Override
     public void onDestroy() {
+        ((AppController) getApplication()).writeTicketsToFile();
         unregisterScreenListener();
         isRecorderServiceRun.set(false);
         releaseWakeLock();
@@ -242,17 +241,22 @@ public class RecorderService extends LifecycleService {
         Map<String, Class<? extends ListenableWorker>> workers = getWorkers();
         if (workers.isEmpty()) return;
 
-        Data inputData = new Data.Builder().putString(VIDEO_FILE_PATH, path).putLong(START_TIME, System.currentTimeMillis()).build();
+        List<VideoFileTicket> videoFileTicketList = clouds.getVideoFileTicketList();
+        videoFileTicketList.removeIf(VideoFileTicket::isNeedRemove);
+        VideoFileTicket ticket = new VideoFileTicket();
+        ticket.setPath(path);
+        ticket.buildDateMillis(path);
+        videoFileTicketList.add(ticket);
 
         for (Map.Entry<String, Class<? extends ListenableWorker>> worker : workers.entrySet()) {
+            ticket.setWorkerFlag(worker.getKey());
             WorkManager.getInstance(this)
-                    .beginUniqueWork(worker.getKey(), ExistingWorkPolicy.APPEND_OR_REPLACE, getSendRequest(worker.getValue(), inputData))
+                    .beginUniqueWork(worker.getKey(), ExistingWorkPolicy.KEEP, getSendRequest(worker.getValue()))
                     .enqueue();
         }
 
         WorkManager.getInstance(this)
-                .beginUniqueWork(path, ExistingWorkPolicy.KEEP, getRemoveRequest(inputData))
-                .enqueue();
+                .enqueueUniquePeriodicWork(REMOVE_QUEUE, ExistingPeriodicWorkPolicy.KEEP, getRemoveRequest());
     }
 
     @NonNull
@@ -271,20 +275,15 @@ public class RecorderService extends LifecycleService {
         return workers;
     }
 
-    private OneTimeWorkRequest getSendRequest(Class<? extends ListenableWorker> workerClass, Data inputData) {
+    private OneTimeWorkRequest getSendRequest(Class<? extends ListenableWorker> workerClass) {
         return new OneTimeWorkRequest.Builder(workerClass)
                 .setConstraints(constraints)
-                .setInputData(inputData)
                 .setBackoffCriteria(BackoffPolicy.LINEAR, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
                 .build();
     }
 
-    private OneTimeWorkRequest getRemoveRequest(Data inputData) {
-        return new OneTimeWorkRequest.Builder(FileRemoveWorker.class)
-                .setInitialDelay(2, TimeUnit.DAYS)
-                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 1, TimeUnit.HOURS)
-                .setInputData(inputData)
-                .build();
+    private PeriodicWorkRequest getRemoveRequest() {
+        return new PeriodicWorkRequest.Builder(FileRemoveWorker.class, 1, TimeUnit.HOURS).build();
     }
 
     private void stopRecordingFile() {

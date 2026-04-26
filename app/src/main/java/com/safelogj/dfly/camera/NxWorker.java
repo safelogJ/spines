@@ -9,13 +9,14 @@ import androidx.work.WorkerParameters;
 
 import com.safelogj.dfly.AppController;
 import com.safelogj.dfly.Clouds;
+import com.safelogj.dfly.VideoFileTicket;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.List;
 
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
@@ -29,50 +30,47 @@ public class NxWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        String filePath = getInputData().getString(RecorderService.VIDEO_FILE_PATH);
-        if (filePath == null) return Result.success();
+        AppController controller = (AppController) getApplicationContext();
+        Clouds clouds = controller.getSavedClouds();
+        List<VideoFileTicket> videoFileTicketList = clouds.getVideoFileTicketList();
 
-        File file = new File(filePath);
-        if (!file.exists()) return Result.success();
-
-        try {
-            Clouds clouds = ((AppController) getApplicationContext()).getSavedClouds();
-            Log.d(AppController.LOG_TAG, "doWork Next =   " + filePath);
-            if (uploadToNextCloud(file, clouds)) return Result.success();
-
-        } catch (Exception e) {
-            Log.d(AppController.LOG_TAG, "ошибка в NEXT воркере при отправке" + filePath);
+        for (VideoFileTicket ticket : videoFileTicketList) {
+            if (ticket.isNeedSendNx()) {
+                File file = new File(ticket.getPath());
+                if (file.exists() && System.currentTimeMillis() - ticket.getDateMillis() < 172_800_000L) {
+                    Log.d(AppController.LOG_TAG, "doWork Nx = ");
+                    try {
+                        if (uploadToNextCloud(file, clouds)) {
+                            ticket.setNeedSendNx(false);
+                        }
+                    } catch (Exception e) {
+                        Log.d(AppController.LOG_TAG, "ошибка в Nx воркере при отправке");
+                    }
+                } else {
+                    ticket.setNeedSendNx(false);
+                    ticket.setNeedRemove(true);
+                }
+            }
         }
-
-        long startTime = getInputData().getLong(RecorderService.START_TIME, 0);
-        if (System.currentTimeMillis() - startTime > (2 * 24 * 60 * 60 * 1000L)) {
-            Log.d(AppController.LOG_TAG, "2 Суток прошло, файл так и не ушел в Next. Отмена.");
-            return Result.success();
-        } else {
-            return Result.retry();
-        }
+        return (videoFileTicketList.stream().anyMatch(VideoFileTicket::isNeedSendNx)) ? Result.retry() : Result.success();
     }
 
-    private boolean uploadToNextCloud(File file, Clouds clouds) {
-        String uploadUrl = clouds.getNextCloudUrl() + file.getName();
-        RequestBody requestBody = RequestBody.create(file, MediaType.parse("video/mp4"));
-        String credential = clouds.getCredentialsNext();
-
+    private boolean uploadToNextCloud(File file, Clouds clouds) throws IllegalArgumentException {
         Request request = new Request.Builder()
-                .url(uploadUrl)
-                .put(requestBody) // WebDAV использует PUT для загрузки
-                .addHeader("Authorization", credential)
+                .url(clouds.getNextCloudUrl() + file.getName())
+                .put(RequestBody.create(file, MediaType.parse("video/mp4"))) // WebDAV использует PUT для загрузки
+                .addHeader("Authorization", clouds.getCredentialsNext())
                 .build();
-        OkHttpClient httpClient = ((AppController) getApplicationContext()).getOkHttpClient();
 
-        try (Response response = httpClient.newCall(request).execute()) {
+        try (Response response = ((AppController) getApplicationContext()).getOkHttpClient().newCall(request).execute()) {
             if (response.isSuccessful()) {
                 Log.d(AppController.LOG_TAG, "Файл успешно загружен Next ");
                 return true;
             } else if (response.code() == HttpURLConnection.HTTP_FORBIDDEN
                     || response.code() == HttpURLConnection.HTTP_BAD_GATEWAY
                     || response.code() == HttpURLConnection.HTTP_UNAUTHORIZED
-                    || response.code() == HttpURLConnection.HTTP_NOT_FOUND) {
+                    || response.code() == HttpURLConnection.HTTP_NOT_FOUND
+                    || response.code() == 507) { // Недостаточно места в памяти
                 Log.d(AppController.LOG_TAG, "Ошибка отправки Next неудача : код = " + response.code());
                 return true;
             } else {
@@ -83,7 +81,5 @@ public class NxWorker extends Worker {
             Log.d(AppController.LOG_TAG, "Ошибка Next  " + e);
             return false;
         }
-
     }
-
 }

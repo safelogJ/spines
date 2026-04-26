@@ -9,18 +9,20 @@ import androidx.work.WorkerParameters;
 
 import com.safelogj.dfly.AppController;
 import com.safelogj.dfly.Clouds;
+import com.safelogj.dfly.VideoFileTicket;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
+import java.util.List;
 
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class YaWorker extends Worker  {
+public class YaWorker extends Worker {
 
     public YaWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -30,47 +32,46 @@ public class YaWorker extends Worker  {
     @Override
     public Result doWork() {
 
-        String filePath = getInputData().getString(RecorderService.VIDEO_FILE_PATH);
-        if (filePath == null) return Result.success();
+        AppController controller = (AppController) getApplicationContext();
+        Clouds clouds = controller.getSavedClouds();
+        List<VideoFileTicket> videoFileTicketList = clouds.getVideoFileTicketList();
 
-        File file = new File(filePath);
-        if (!file.exists()) return Result.success();
-
-        try {
-            Clouds clouds = ((AppController) getApplicationContext()).getSavedClouds();
-            Log.d(AppController.LOG_TAG, "doWork Ya =   " + filePath);
-            uploadToYandexDisk(file, clouds);
-            return Result.success();
-
-        } catch (Exception e) {
-            Log.d(AppController.LOG_TAG, "ошибка в Ya воркере при отправке");
+        for (VideoFileTicket ticket : videoFileTicketList) {
+            if (ticket.isNeedSendYa()) {
+                File file = new File(ticket.getPath());
+                if (file.exists()) {
+                    Log.d(AppController.LOG_TAG, "doWork Ya = ");
+                    try {
+                        uploadToYandexDisk(file, clouds);
+                        ticket.setNeedSendYa(false);
+                    } catch (Exception e) {
+                        if (System.currentTimeMillis() - ticket.getDateMillis() > 120_000L) {
+                            ticket.setNeedSendYa(false);
+                        }
+                        Log.d(AppController.LOG_TAG, "ошибка в Ya воркере при отправке");
+                    }
+                } else {
+                    ticket.setNeedSendYa(false);
+                    ticket.setNeedRemove(true);
+                }
+            }
         }
-
-        long startTime = getInputData().getLong(RecorderService.START_TIME, 0);
-        if (System.currentTimeMillis() - startTime > 120_000L) {
-            Log.d(AppController.LOG_TAG, "2 минуты прошли, файл так и не ушел. Отмена.");
-            return Result.success();
-        } else {
-            return Result.retry();
-        }
+        return (videoFileTicketList.stream().anyMatch(VideoFileTicket::isNeedSendYa)) ? Result.retry() : Result.success();
     }
 
     private void uploadToYandexDisk(File file, Clouds clouds) throws IllegalArgumentException {
-
-        RequestBody body = RequestBody.create(file, MediaType.parse("video/mp4"));
-
         Request request = new Request.Builder()
                 .url("https://webdav.yandex.ru/" + file.getName())
+                .put(RequestBody.create(file, MediaType.parse("video/mp4")))
                 .addHeader("Authorization", clouds.getCredentialsYa())
                 .addHeader("If-None-Match", "*")
-                .put(body)
                 .build();
 
-        OkHttpClient httpClient = ((AppController) getApplicationContext()).getOkHttpClient();
-
-        try (Response response = httpClient.newCall(request).execute()) {
-            if (response.isSuccessful() || response.code() == HttpURLConnection.HTTP_PRECON_FAILED) {
-                Log.d(AppController.LOG_TAG, "Файл успешно загружен! = Ya" + response.code());
+        try (Response response = ((AppController) getApplicationContext()).getOkHttpClient().newCall(request).execute()) {
+            if (response.isSuccessful()
+                    || response.code() == HttpURLConnection.HTTP_PRECON_FAILED
+                    || response.code() == 507) { // Недостаточно места в памяти
+                Log.d(AppController.LOG_TAG, "Файл успешно загружен или нет места в облаке! = Ya" + response.code());
             } else {
                 Log.d(AppController.LOG_TAG, "Ошибка: в ответе Ya " + response.code() + " " + response.message());
             }

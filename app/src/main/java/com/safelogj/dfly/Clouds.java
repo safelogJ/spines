@@ -1,5 +1,10 @@
 package com.safelogj.dfly;
 
+import androidx.annotation.NonNull;
+
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import okhttp3.Credentials;
 
 public class Clouds {
@@ -7,6 +12,8 @@ public class Clouds {
     private static final String DEFAULT_URL = "https://ivo.lv.tab.digital/remote.php/dav/files/";
     private static final String MARKER = "/remote.php/dav/files/";
     private static final String SLASH = "/";
+    @NonNull
+    private final List<VideoFileTicket> videoFileTicketList = new CopyOnWriteArrayList<>();
     private String tgBotToken = AppController.EMPTY_STRING;
     private String tgChatId = AppController.EMPTY_STRING;
     private String yaAcc = AppController.EMPTY_STRING;
@@ -114,5 +121,9 @@ public class Clouds {
             nextCloudLogin = nextUserField;
             nextCloudUrl = DEFAULT_URL + nextUserField + SLASH;
         }
+    }
+    @NonNull
+    public List<VideoFileTicket> getVideoFileTicketList() {
+        return videoFileTicketList;
     }
 }

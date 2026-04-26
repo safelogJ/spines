@@ -6,8 +6,10 @@
 <data-extraction-rules>
     <cloud-backup>
         <include domain="file" path="clouds/clouds.txt"/>
+        <include domain="file" path="files/files.txt"/>
     </cloud-backup>
     <device-transfer>
         <include domain="file" path="clouds/clouds.txt"/>
+        <include domain="file" path="files/files.txt"/>
     </device-transfer>
 </data-extraction-rules>

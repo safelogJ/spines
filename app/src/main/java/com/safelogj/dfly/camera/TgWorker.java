@@ -9,19 +9,20 @@ import androidx.work.WorkerParameters;
 
 import com.safelogj.dfly.AppController;
 import com.safelogj.dfly.Clouds;
+import com.safelogj.dfly.VideoFileTicket;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.List;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class TgWorker extends Worker  {
+public class TgWorker extends Worker {
 
     public TgWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -30,32 +31,32 @@ public class TgWorker extends Worker  {
     @NonNull
     @Override
     public Result doWork() {
+        AppController controller = (AppController) getApplicationContext();
+        Clouds clouds = controller.getSavedClouds();
+        List<VideoFileTicket> videoFileTicketList = clouds.getVideoFileTicketList();
 
-        String filePath = getInputData().getString(RecorderService.VIDEO_FILE_PATH);
-        if (filePath == null) return Result.success();
-
-        File file = new File(filePath);
-        if (!file.exists()) return Result.success();
-
-        try {
-            Clouds clouds = ((AppController) getApplicationContext()).getSavedClouds();
-            Log.d(AppController.LOG_TAG, "doWork TG =   " + filePath);
-            if (uploadToTelegram(file, clouds)) return Result.success();
-
-        } catch (Exception e) {
-            Log.d(AppController.LOG_TAG, "ошибка в TG воркере при отправке");
+        for (VideoFileTicket ticket : videoFileTicketList) {
+            if (ticket.isNeedSendTg()) {
+                File file = new File(ticket.getPath());
+                if (file.exists() && System.currentTimeMillis() - ticket.getDateMillis() < 172_800_000L) {
+                    Log.d(AppController.LOG_TAG, "doWork Tg = ");
+                    try {
+                        if (uploadToTelegram(file, clouds)) {
+                            ticket.setNeedSendTg(false);
+                        }
+                    } catch (Exception e) {
+                        Log.d(AppController.LOG_TAG, "ошибка в Tg воркере при отправке");
+                    }
+                } else {
+                    ticket.setNeedSendTg(false);
+                    ticket.setNeedRemove(true);
+                }
+            }
         }
-
-        long startTime = getInputData().getLong(RecorderService.START_TIME, 0);
-        if (System.currentTimeMillis() - startTime > (2 * 24 * 60 * 60 * 1000L)) {
-            Log.d(AppController.LOG_TAG, "2 Суток прошло, файл так и не ушел. Отмена.");
-            return Result.success();
-        } else {
-            return Result.retry();
-        }
+        return (videoFileTicketList.stream().anyMatch(VideoFileTicket::isNeedSendTg)) ? Result.retry() : Result.success();
     }
 
-    private boolean uploadToTelegram(File file, Clouds clouds) {
+    private boolean uploadToTelegram(File file, Clouds clouds) throws IllegalArgumentException {
         RequestBody requestBody = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("chat_id", clouds.getTgChatId())
@@ -68,9 +69,7 @@ public class TgWorker extends Worker  {
                 .post(requestBody)
                 .build();
 
-        OkHttpClient httpClient = ((AppController) getApplicationContext()).getOkHttpClient();
-
-        try (Response response = httpClient.newCall(request).execute()) {
+        try (Response response = ((AppController) getApplicationContext()).getOkHttpClient().newCall(request).execute()) {
             if (response.isSuccessful()) {
                 Log.d(AppController.LOG_TAG, "Видео успешно отправлено в TG = " + response.code());
                 return true;

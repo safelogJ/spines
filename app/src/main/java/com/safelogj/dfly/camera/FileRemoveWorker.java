@@ -4,14 +4,22 @@ import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
 import com.safelogj.dfly.AppController;
+import com.safelogj.dfly.Clouds;
+import com.safelogj.dfly.VideoFileTicket;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class FileRemoveWorker extends Worker {
 
@@ -22,24 +30,24 @@ public class FileRemoveWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        String filePath = getInputData().getString(RecorderService.VIDEO_FILE_PATH);
-        if (filePath == null) return Result.success();
+        AppController controller = (AppController) getApplicationContext();
+        Clouds clouds = controller.getSavedClouds();
+        List<VideoFileTicket> videoFileTicketList = clouds.getVideoFileTicketList();
 
-        File file = new File(filePath);
-        if (!file.exists()) return Result.success();
-
-        long startTime = getInputData().getLong(RecorderService.START_TIME, 0);
-        if (System.currentTimeMillis() - startTime > (3 * 24 * 60 * 60 * 1000L)) {
-            Log.d(AppController.LOG_TAG, "3 Суток прошло, файл так и не удалён. Отмена.");
-            return  Result.success();
-        } else if (System.currentTimeMillis() - startTime > (2 * 24 * 60 * 60 * 1000L)) {
-            Log.d(AppController.LOG_TAG, "2 Суток прошло, пробуем удалить файл.");
-            try {
-               return Files.deleteIfExists(file.toPath()) ? Result.success() : Result.retry();
-            } catch (IOException e) {
-                return Result.retry();
+        for (VideoFileTicket ticket : videoFileTicketList) {
+            if (System.currentTimeMillis() - ticket.getDateMillis() > 172_800_000L) {
+                ticket.setNeedRemove(true);
+                try {
+                    Files.deleteIfExists(new File(ticket.getPath()).toPath());
+                } catch (Exception e) {
+                    Log.d(AppController.LOG_TAG, "Не удалился файл в  = FileRemoveWorker" + ticket.getPath());
+                }
             }
         }
-        return Result.retry();
+
+        if (videoFileTicketList.stream().noneMatch(t -> System.currentTimeMillis() - t.getDateMillis() < 172_800_000L)) {
+            WorkManager.getInstance(getApplicationContext()).cancelUniqueWork(RecorderService.REMOVE_QUEUE);
+        }
+        return Result.success();
     }
 }

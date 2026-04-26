@@ -11,17 +11,20 @@ import android.os.PowerManager;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
+import android.util.JsonReader;
+import android.util.JsonWriter;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
 import androidx.camera.camera2.Camera2Config;
 import androidx.camera.core.CameraXConfig;
 import androidx.core.content.ContextCompat;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.jspecify.annotations.NonNull;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -36,7 +39,9 @@ import java.security.NoSuchProviderException;
 import java.security.UnrecoverableEntryException;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -58,12 +63,21 @@ public class AppController extends Application implements CameraXConfig.Provider
     public static final String EMPTY_STRING = "";
     private static final String CLOUDS = "clouds";
     private static final String CLOUDS_JSON = "clouds.txt";
+    private static final String FILES = "files";
+    private static final String FILES_JSON = "files.txt";
     private static final String TG_BOT_TOKEN = "tgBotToken";
     private static final String TG_CHAT_ID = "tgChatId";
     private static final String YA_ACC = "yaAcc";
     private static final String YA_APP_PASS = "appPass";
     private static final String NEXTCLOUD_USERF = "nextCloudUserF";
     private static final String NEXTCLOUD_PASS = "nextCloudPass";
+    private static final String TICKET_LIST = "ticketList";
+    private static final String TICKET_PATH = "ticketPath";
+    private static final String TICKET_DATE = "ticketDate";
+    private static final String TICKET_YA_SEND = "ticketYaSend";
+    private static final String TICKET_TG_SEND = "ticketTgSend";
+    private static final String TICKET_NX_SEND = "ticketNxSend";
+    private static final String TICKET_REMOVE = "ticketRemove";
     private static final String ENCRYPTED_DATA_KEY = "encryptedData";
     private static final String KEY_ALIAS = "SavedRouterKeyAlias";
     private static final String ANDROID_KEYSTORE = "AndroidKeyStore";
@@ -71,6 +85,7 @@ public class AppController extends Application implements CameraXConfig.Provider
     private static final int GCM_TAG_LENGTH = 16;
     private static final String TRANSFORMATION = "AES/GCM/NoPadding";
     private final ScheduledExecutorService saveFileExecutor = Executors.newSingleThreadScheduledExecutor();
+    @NonNull
     private final Clouds savedClouds = new Clouds();
     private WeakReference<Activity> currentActivityRef;
     private OkHttpClient okHttpClient;
@@ -107,6 +122,7 @@ public class AppController extends Application implements CameraXConfig.Provider
         return btnRipleColorBlack;
     }
 
+    @NonNull
     public Clouds getSavedClouds() {
         return savedClouds;
     }
@@ -116,12 +132,13 @@ public class AppController extends Application implements CameraXConfig.Provider
         super.onCreate();
         regActivityListener();
         createNotificationChannel();
-        initBatteryIcons();
+        initBatteryIconColors();
         readCloudsEncrypted();
+        readTicketsFromFile();
 
         Dispatcher dispatcher = new Dispatcher();
-        dispatcher.setMaxRequests(3); // Всего не более 3-х активных задач в сети
-        dispatcher.setMaxRequestsPerHost(1); // Не даем одному облаку забить весь канал несколькими потоками
+        dispatcher.setMaxRequests(3); // Всего не более 3-х активных задач в сети 1-3
+        dispatcher.setMaxRequestsPerHost(1); // Не даем одному облаку забить весь канал несколькими потоками 3
 
         okHttpClient = new OkHttpClient.Builder()
                 .dispatcher(dispatcher)
@@ -139,7 +156,7 @@ public class AppController extends Application implements CameraXConfig.Provider
 
     @Override
     public @NonNull CameraXConfig getCameraXConfig() {
-         return Camera2Config.defaultConfig();
+        return Camera2Config.defaultConfig();
 //        return new CameraXConfig.Builder()
 //                .fromConfig(Camera2Config.defaultConfig())
 //                .setMinimumLoggingLevel(Log.ERROR) // Меньше мусора в логах
@@ -147,7 +164,7 @@ public class AppController extends Application implements CameraXConfig.Provider
     }
 
     public void writeCloudsEncrypted() {
-        saveFileExecutor.schedule(()-> {
+        saveFileExecutor.execute(() -> {
             File routersListDir = new File(getFilesDir(), CLOUDS);
             if (!routersListDir.exists() && !routersListDir.mkdirs()) {
                 Log.d(LOG_TAG, "Failed to create directory.");
@@ -158,7 +175,7 @@ public class AppController extends Application implements CameraXConfig.Provider
 
             try {
                 JSONObject currentCloudsJson = new JSONObject();
-                buildJsonFromClouds(currentCloudsJson, savedClouds); // Пароль здесь в открытом виде
+                buildJsonFromClouds(currentCloudsJson); // Пароль здесь в открытом виде
 
                 // 2. Шифрование всего JSON-контента
                 String rawJsonString = currentCloudsJson.toString();
@@ -175,87 +192,197 @@ public class AppController extends Application implements CameraXConfig.Provider
                     file.write(fileWrapper.toString(4));
                 }
 
-            } catch (Exception e) { // Ловим Exception, т.к. Keystore/Cipher может бросить разные исключения
+            } catch (
+                    Exception e) { // Ловим Exception, т.к. Keystore/Cipher может бросить разные исключения
                 Log.d(LOG_TAG, "Error writing encrypted JSON file or key management failure: ", e);
             }
-        }, 0, TimeUnit.SECONDS);
+        });
 
     }
 
-    private void buildJsonFromClouds(JSONObject cloudsJson, Clouds clouds) throws JSONException {
-        String tgBotToken = clouds.getTgBotToken();
+    private void buildJsonFromClouds(JSONObject cloudsJson) throws JSONException {
+        String tgBotToken = savedClouds.getTgBotToken();
         cloudsJson.put(TG_BOT_TOKEN, tgBotToken != null ? tgBotToken : EMPTY_STRING);
-        String tgChatId = clouds.getTgChatId();
+        String tgChatId = savedClouds.getTgChatId();
         cloudsJson.put(TG_CHAT_ID, tgChatId != null ? tgChatId : EMPTY_STRING);
-        String yaAcc = clouds.getYaAcc();
+        String yaAcc = savedClouds.getYaAcc();
         cloudsJson.put(YA_ACC, yaAcc != null ? yaAcc : EMPTY_STRING);
-        String appPass = clouds.getYaAppPass();
+        String appPass = savedClouds.getYaAppPass();
         cloudsJson.put(YA_APP_PASS, appPass != null ? appPass : EMPTY_STRING);
-        String nextUserF = clouds.getNextUserField();
+        String nextUserF = savedClouds.getNextUserField();
         cloudsJson.put(NEXTCLOUD_USERF, nextUserF != null ? nextUserF : EMPTY_STRING);
-        String nextPass = clouds.getNextCloudPass();
+        String nextPass = savedClouds.getNextCloudPass();
         cloudsJson.put(NEXTCLOUD_PASS, nextPass != null ? nextPass : EMPTY_STRING);
     }
 
-    private void readCloudsFromJson(JSONObject cloudsJson, Clouds clouds) {
+    public void writeTicketsToFile() {
+        saveFileExecutor.execute(() -> {
+            File ticketsListDir = new File(getFilesDir(), FILES);
+            if (!ticketsListDir.exists() && !ticketsListDir.mkdirs()) {
+                Log.d(LOG_TAG, "Failed to create directory.");
+                return;
+            }
+
+            File tempFile = new File(ticketsListDir, FILES_JSON + ".tmp");
+            File finalFile = new File(ticketsListDir, FILES_JSON);
+            boolean isSuccess = false;
+            try (JsonWriter writer = new JsonWriter(new BufferedWriter(new FileWriter(tempFile)))) {
+                writer.beginObject();
+                writer.name(TICKET_LIST);
+                writer.beginArray();
+                for (VideoFileTicket ticket : savedClouds.getVideoFileTicketList()) {
+                    writeTicket(writer, ticket);
+                }
+                writer.endArray();
+                writer.endObject();
+                isSuccess = true;
+                Log.d(LOG_TAG, "Записано в файл потоком. Тикетов: " + savedClouds.getVideoFileTicketList().size());
+            } catch (Exception e) {
+                Log.d(LOG_TAG, "Ошибка при записи тикетов: ", e);
+            }
+
+            try {
+                if (isSuccess && tempFile.exists() && tempFile.renameTo(finalFile)) {
+                    Log.d(LOG_TAG, "Запись прошла успешно, файл заменен.");
+                    return;
+                }
+                if (tempFile.exists() && tempFile.delete()) {
+                    Log.d(LOG_TAG, "Запись tempFile неудача, файл tempFile удалён.");
+                } else {
+                    Log.d(LOG_TAG, "Запись tempFile неудача, файл tempFile неудалён.");
+                }
+            } catch (Exception e) {
+                Log.d(LOG_TAG, "Ошибка переименования тикетов: ", e);
+            }
+
+        });
+    }
+
+    private void writeTicket(JsonWriter writer, VideoFileTicket ticket) throws IOException {
+            writer.beginObject();
+            writer.name(TICKET_PATH).value(ticket.getPath());
+            writer.name(TICKET_DATE).value(ticket.getDateMillis());
+            writer.name(TICKET_YA_SEND).value(ticket.isNeedSendYa());
+            writer.name(TICKET_TG_SEND).value(ticket.isNeedSendTg());
+            writer.name(TICKET_NX_SEND).value(ticket.isNeedSendNx());
+            writer.name(TICKET_REMOVE).value(ticket.isNeedRemove());
+            writer.endObject();
+    }
+
+    private void readCloudsFromJson(JSONObject cloudsJson) {
         String tgBotToken = cloudsJson.optString(TG_BOT_TOKEN, EMPTY_STRING);
         String tgChatId = cloudsJson.optString(TG_CHAT_ID, EMPTY_STRING);
         String yaAcc = cloudsJson.optString(YA_ACC, EMPTY_STRING);
         String appPass = cloudsJson.optString(YA_APP_PASS, EMPTY_STRING);
         String nextUserF = cloudsJson.optString(NEXTCLOUD_USERF, EMPTY_STRING);
         String nextPass = cloudsJson.optString(NEXTCLOUD_PASS, EMPTY_STRING);
-        clouds.setTgBotToken(tgBotToken);
-        clouds.setTgChatId(tgChatId);
-        clouds.setYaAcc(yaAcc);
-        clouds.setYaAppPass(appPass);
-        clouds.setNextUserField(nextUserF);
-        clouds.setNextCloudPass(nextPass);
+        savedClouds.setTgBotToken(tgBotToken);
+        savedClouds.setTgChatId(tgChatId);
+        savedClouds.setYaAcc(yaAcc);
+        savedClouds.setYaAppPass(appPass);
+        savedClouds.setNextUserField(nextUserF);
+        savedClouds.setNextCloudPass(nextPass);
     }
 
+
     private void readCloudsEncrypted() {
-        saveFileExecutor.schedule(()-> {
-            File routersListDir = new File(getFilesDir(), CLOUDS);
-            File routersListFile = new File(routersListDir, CLOUDS_JSON);
-            StringBuilder fileContent = new StringBuilder();
+        File routersListDir = new File(getFilesDir(), CLOUDS);
+        File routersListFile = new File(routersListDir, CLOUDS_JSON);
+        StringBuilder fileContent = new StringBuilder();
 
-            if (!routersListFile.exists()) {
-                Log.d(LOG_TAG, "Encrypted settings file not found.");
+        if (!routersListFile.exists()) {
+            Log.d(LOG_TAG, "Encrypted settings file not found.");
+            return;
+        }
+
+        // 1. Чтение содержимого файла-оболочки
+        try (FileReader reader = new FileReader(routersListFile)) {
+            char[] buffer = new char[1024];
+            int length;
+            while ((length = reader.read(buffer)) != -1) {
+                fileContent.append(buffer, 0, length);
+            }
+        } catch (IOException e) {
+            Log.d(LOG_TAG, "Error reading encrypted settings file: ", e);
+            return;
+        }
+
+        // 2. Извлечение и дешифрование данных
+        try {
+            JSONObject fileWrapper = new JSONObject(fileContent.toString());
+            String encryptedBase64 = fileWrapper.getString(ENCRYPTED_DATA_KEY);
+
+            // Декодирование и дешифрование
+            byte[] combinedBytes = Base64.decode(encryptedBase64, Base64.DEFAULT); // Base64.DEFAULT безопасно для декодирования
+            byte[] decryptedBytes = decrypt(combinedBytes);
+            String rawJsonString = new String(decryptedBytes, StandardCharsets.UTF_8);
+
+            // 3. Парсинг дешифрованного полного JSON
+            JSONObject currentCloudsJson = new JSONObject(rawJsonString);
+            readCloudsFromJson(currentCloudsJson); // Использует открытый пароль из JSON
+
+        } catch (
+                Exception e) { // Ловим Exception, т.к. Keystore/Cipher может бросить разные исключения
+            Log.d(LOG_TAG, "Error reading or decrypting full JSON data: ", e);
+        }
+
+    }
+
+    private void readTicketsFromFile() {
+        saveFileExecutor.execute(() -> {
+            File ticketsListDir = new File(getFilesDir(), FILES);
+            File ticketsListFile = new File(ticketsListDir, FILES_JSON);
+
+            if (!ticketsListFile.exists()) {
+                Log.d(LOG_TAG, "Tickets file not found.");
                 return;
             }
 
-            // 1. Чтение содержимого файла-оболочки
-            try (FileReader reader = new FileReader(routersListFile)) {
-                char[] buffer = new char[1024];
-                int length;
-                while ((length = reader.read(buffer)) != -1) {
-                    fileContent.append(buffer, 0, length);
+            List<VideoFileTicket> tempList = new ArrayList<>();
+
+            try (JsonReader reader = new JsonReader(new FileReader(ticketsListFile))) {
+                reader.beginObject(); // Входим в главный объект {
+                while (reader.hasNext()) {
+                    String name = reader.nextName();
+                    if (name.equals(TICKET_LIST)) {
+                        reader.beginArray(); // Входим в [
+                        while (reader.hasNext()) {
+                            tempList.add(readSingleTicket(reader));
+                        }
+                        reader.endArray(); // Выходим из ]
+                    } else {
+                        reader.skipValue(); // Пропускаем неизвестные поля
+                    }
                 }
-            } catch (IOException e) {
-                Log.d(LOG_TAG, "Error reading encrypted settings file: ", e);
-                return;
+                reader.endObject(); // Выходим из }
+
+                // Добавляем всё в основной список
+                savedClouds.getVideoFileTicketList().addAll(tempList);
+                Log.d(LOG_TAG, "Потоковое чтение завершено. Прочитано: " + tempList.size());
+
+            } catch (Exception e) {
+                Log.d(LOG_TAG, "Ошибка потокового чтения JSON: ", e);
             }
+        });
+    }
 
-            // 2. Извлечение и дешифрование данных
-            try {
-                JSONObject fileWrapper = new JSONObject(fileContent.toString());
-                String encryptedBase64 = fileWrapper.getString(ENCRYPTED_DATA_KEY);
-
-                // Декодирование и дешифрование
-                byte[] combinedBytes = Base64.decode(encryptedBase64, Base64.DEFAULT); // Base64.DEFAULT безопасно для декодирования
-                byte[] decryptedBytes = decrypt(combinedBytes);
-                String rawJsonString = new String(decryptedBytes, StandardCharsets.UTF_8);
-
-                // 3. Парсинг дешифрованного полного JSON
-                JSONObject currentCloudsJson = new JSONObject(rawJsonString);
-                readCloudsFromJson(currentCloudsJson, savedClouds); // Использует открытый пароль из JSON
-
-            } catch (
-                    Exception e) { // Ловим Exception, т.к. Keystore/Cipher может бросить разные исключения
-                Log.d(LOG_TAG, "Error reading or decrypting full JSON data: ", e);
+    private VideoFileTicket readSingleTicket(JsonReader reader) throws IOException {
+        VideoFileTicket ticket = new VideoFileTicket();
+        reader.beginObject();
+        while (reader.hasNext()) {
+            String name = reader.nextName();
+            switch (name) {
+                case TICKET_PATH: ticket.setPath(reader.nextString()); break;
+                case TICKET_DATE: ticket.setDateMillis(reader.nextLong()); break;
+                case TICKET_YA_SEND: ticket.setNeedSendYa(reader.nextBoolean()); break;
+                case TICKET_TG_SEND: ticket.setNeedSendTg(reader.nextBoolean()); break;
+                case TICKET_NX_SEND: ticket.setNeedSendNx(reader.nextBoolean()); break;
+                case TICKET_REMOVE: ticket.setNeedRemove(reader.nextBoolean()); break;
+                default: reader.skipValue(); break;
             }
-
-        }, 0, TimeUnit.SECONDS);
-
+        }
+        reader.endObject();
+        return ticket;
     }
 
     private SecretKey getOrCreateSecretKey() throws KeyStoreException, IllegalArgumentException, IOException, NoSuchAlgorithmException,
@@ -389,11 +516,12 @@ public class AppController extends Application implements CameraXConfig.Provider
         });
     }
 
-    private void initBatteryIcons() {
+    private void initBatteryIconColors() {
         mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         btnBackColorGreen = ContextCompat.getColorStateList(getApplicationContext(), R.color.green_600);
         btnBackColorBlack = ContextCompat.getColorStateList(getApplicationContext(), R.color.black3);
         btnRipleColorGreen = ContextCompat.getColorStateList(getApplicationContext(), R.color.green_100);
         btnRipleColorBlack = ContextCompat.getColorStateList(getApplicationContext(), R.color.light_gray);
     }
+
 }
