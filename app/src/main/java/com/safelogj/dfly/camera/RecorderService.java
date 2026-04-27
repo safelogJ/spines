@@ -251,11 +251,6 @@ public class RecorderService extends LifecycleService {
         videoFileTicketList.add(ticket);
         WorkManager workManager = WorkManager.getInstance(this);
 
-//        for (Map.Entry<String, Class<? extends ListenableWorker>> worker : workers.entrySet()) {
-//            ticket.setWorkerFlag(worker.getKey());
-//            workManager.beginUniqueWork(worker.getKey(), ExistingWorkPolicy.KEEP, getSendRequest(worker.getValue()))
-//                    .enqueue();
-//        }
         for (Map.Entry<String, Class<? extends ListenableWorker>> worker : workers.entrySet()) {
             ticket.setWorkerFlag(worker.getKey());
             workManager.enqueueUniquePeriodicWork(worker.getKey(), ExistingPeriodicWorkPolicy.KEEP, getSendRequest(worker.getValue()));
@@ -285,13 +280,6 @@ public class RecorderService extends LifecycleService {
                 .setBackoffCriteria(BackoffPolicy.LINEAR, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
                 .build();
     }
-
-//    private OneTimeWorkRequest getSendRequest(Class<? extends ListenableWorker> workerClass) {
-//        return new OneTimeWorkRequest.Builder(workerClass)
-//                .setConstraints(constraints)
-//                .setBackoffCriteria(BackoffPolicy.LINEAR, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
-//                .build();
-//    }
 
     private PeriodicWorkRequest getRemoveRequest() {
         return new PeriodicWorkRequest.Builder(FileRemoveWorker.class, 1, TimeUnit.HOURS)
