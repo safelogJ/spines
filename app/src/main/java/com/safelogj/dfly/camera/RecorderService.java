@@ -66,6 +66,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RecorderService extends LifecycleService {
 
+    public static final Constraints constraints = new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build();
     public static float zoomRatio = 1.0F;
     public static final String YA_QUEUE = "yaQueue";
     public static final String NX_QUEUE = "nxQueue";
@@ -98,7 +99,6 @@ public class RecorderService extends LifecycleService {
             recordNextChunk();
         }
     };
-    private final Constraints constraints = new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build();
     private final Preview preview = new Preview.Builder().build();
     private int currentDurationSeconds;
     private File mVideoDir;
@@ -158,7 +158,9 @@ public class RecorderService extends LifecycleService {
 
     @Override
     public void onDestroy() {
-        ((AppController) getApplication()).writeTicketsToFile();
+        if (isServiceRun()) {
+            ((AppController) getApplication()).writeTicketsToFile();
+        }
         unregisterScreenListener();
         isRecorderServiceRun.set(false);
         releaseWakeLock();
@@ -247,16 +249,18 @@ public class RecorderService extends LifecycleService {
         ticket.setPath(path);
         ticket.buildDateMillis(path);
         videoFileTicketList.add(ticket);
+        WorkManager workManager = WorkManager.getInstance(this);
 
+//        for (Map.Entry<String, Class<? extends ListenableWorker>> worker : workers.entrySet()) {
+//            ticket.setWorkerFlag(worker.getKey());
+//            workManager.beginUniqueWork(worker.getKey(), ExistingWorkPolicy.KEEP, getSendRequest(worker.getValue()))
+//                    .enqueue();
+//        }
         for (Map.Entry<String, Class<? extends ListenableWorker>> worker : workers.entrySet()) {
             ticket.setWorkerFlag(worker.getKey());
-            WorkManager.getInstance(this)
-                    .beginUniqueWork(worker.getKey(), ExistingWorkPolicy.KEEP, getSendRequest(worker.getValue()))
-                    .enqueue();
+            workManager.enqueueUniquePeriodicWork(worker.getKey(), ExistingPeriodicWorkPolicy.KEEP, getSendRequest(worker.getValue()));
         }
-
-        WorkManager.getInstance(this)
-                .enqueueUniquePeriodicWork(REMOVE_QUEUE, ExistingPeriodicWorkPolicy.KEEP, getRemoveRequest());
+        workManager.enqueueUniquePeriodicWork(REMOVE_QUEUE, ExistingPeriodicWorkPolicy.KEEP, getRemoveRequest());
     }
 
     @NonNull
@@ -275,15 +279,24 @@ public class RecorderService extends LifecycleService {
         return workers;
     }
 
-    private OneTimeWorkRequest getSendRequest(Class<? extends ListenableWorker> workerClass) {
-        return new OneTimeWorkRequest.Builder(workerClass)
+    private PeriodicWorkRequest getSendRequest(Class<? extends ListenableWorker> workerClass) {
+        return new PeriodicWorkRequest.Builder(workerClass, 15, TimeUnit.MINUTES)
                 .setConstraints(constraints)
                 .setBackoffCriteria(BackoffPolicy.LINEAR, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
                 .build();
     }
 
+//    private OneTimeWorkRequest getSendRequest(Class<? extends ListenableWorker> workerClass) {
+//        return new OneTimeWorkRequest.Builder(workerClass)
+//                .setConstraints(constraints)
+//                .setBackoffCriteria(BackoffPolicy.LINEAR, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
+//                .build();
+//    }
+
     private PeriodicWorkRequest getRemoveRequest() {
-        return new PeriodicWorkRequest.Builder(FileRemoveWorker.class, 1, TimeUnit.HOURS).build();
+        return new PeriodicWorkRequest.Builder(FileRemoveWorker.class, 1, TimeUnit.HOURS)
+                .setBackoffCriteria(BackoffPolicy.LINEAR, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
+                .build();
     }
 
     private void stopRecordingFile() {

@@ -16,6 +16,7 @@ public class Clouds {
     private final ReentrantLock yaLock = new ReentrantLock();
     private final ReentrantLock tgLock = new ReentrantLock();
     private final ReentrantLock nxLock = new ReentrantLock();
+    private final ReentrantLock removeLock = new ReentrantLock();
     @NonNull
     private final List<VideoFileTicket> videoFileTicketList = new CopyOnWriteArrayList<>();
     private String tgBotToken = AppController.EMPTY_STRING;
@@ -32,6 +33,7 @@ public class Clouds {
     public ReentrantLock getYaLock() { return yaLock; }
     public ReentrantLock getTgLock() { return tgLock; }
     public ReentrantLock getNxLock() { return nxLock; }
+    public ReentrantLock getRemoveLock() { return removeLock; }
 
 
     public String getTgBotToken() {

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
@@ -30,6 +31,10 @@ public class YaWorker extends Worker {
     @Override
     public Result doWork() {
         AppController controller = (AppController) getApplicationContext();
+        if (!controller.isTicketsReady()) {
+            Log.d(AppController.LOG_TAG, "Список тикетов не дождался YA ");
+            return Result.retry();
+        }
         Clouds clouds = controller.getSavedClouds();
         if (!clouds.getYaLock().tryLock()) {
             Log.d(AppController.LOG_TAG, Thread.currentThread().getName() +" YA Занято другим воркером, выхожу.");
@@ -59,14 +64,15 @@ public class YaWorker extends Worker {
 
         if (clouds.getVideoFileTicketList().stream().anyMatch(VideoFileTicket::isNeedSendYa)) {
             clouds.getYaLock().unlock();
-            Log.d(AppController.LOG_TAG, "YaLock отпущен.");
+            Log.d(AppController.LOG_TAG, "YaLock отпущен. retry");
             return Result.retry();
         } else {
             if (!RecorderService.isServiceRun()) {
                 controller.writeTicketsToFile();
             }
             clouds.getYaLock().unlock();
-            Log.d(AppController.LOG_TAG, "YaLock отпущен.");
+            Log.d(AppController.LOG_TAG, "YaLock отпущен. success " + clouds.getVideoFileTicketList().size());
+            WorkManager.getInstance(getApplicationContext()).cancelUniqueWork(RecorderService.YA_QUEUE);
             return Result.success();
         }
     }

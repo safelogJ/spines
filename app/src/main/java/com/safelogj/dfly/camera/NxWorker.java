@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
@@ -30,6 +31,10 @@ public class NxWorker extends Worker {
     @Override
     public Result doWork() {
         AppController controller = (AppController) getApplicationContext();
+        if (!controller.isTicketsReady()) {
+            Log.d(AppController.LOG_TAG, "Список тикетов не дождался NX ");
+            return Result.retry();
+        }
         Clouds clouds = controller.getSavedClouds();
         if (!clouds.getNxLock().tryLock()) {
             Log.d(AppController.LOG_TAG, Thread.currentThread().getName() +" NX Занято другим воркером, выхожу.");
@@ -56,14 +61,15 @@ public class NxWorker extends Worker {
         }
         if (clouds.getVideoFileTicketList().stream().anyMatch(VideoFileTicket::isNeedSendNx)) {
             clouds.getNxLock().unlock();
-            Log.d(AppController.LOG_TAG, "NxLock отпущен.");
+            Log.d(AppController.LOG_TAG, "NxLock отпущен. retry");
             return Result.retry();
         } else {
             if (!RecorderService.isServiceRun()) {
                 controller.writeTicketsToFile();
             }
             clouds.getNxLock().unlock();
-            Log.d(AppController.LOG_TAG, "NxLock отпущен.");
+            Log.d(AppController.LOG_TAG, "NxLock отпущен. success " + clouds.getVideoFileTicketList().size());
+            WorkManager.getInstance(getApplicationContext()).cancelUniqueWork(RecorderService.NX_QUEUE);
             return Result.success();
         }
     }

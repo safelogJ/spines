@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
@@ -31,6 +32,10 @@ public class TgWorker extends Worker {
     @Override
     public Result doWork() {
         AppController controller = (AppController) getApplicationContext();
+        if (!controller.isTicketsReady()) {
+            Log.d(AppController.LOG_TAG, "Список тикетов не дождался TG ");
+            return Result.retry();
+        }
         Clouds clouds = controller.getSavedClouds();
         if (!clouds.getTgLock().tryLock()) {
             Log.d(AppController.LOG_TAG, Thread.currentThread().getName() +" TG Занято другим воркером, выхожу.");
@@ -57,14 +62,15 @@ public class TgWorker extends Worker {
         }
         if (clouds.getVideoFileTicketList().stream().anyMatch(VideoFileTicket::isNeedSendTg)) {
             clouds.getTgLock().unlock();
-            Log.d(AppController.LOG_TAG, "TgLock отпущен.");
+            Log.d(AppController.LOG_TAG, "TgLock отпущен. retry");
             return Result.retry();
         } else {
             if (!RecorderService.isServiceRun()) {
                 controller.writeTicketsToFile();
             }
             clouds.getTgLock().unlock();
-            Log.d(AppController.LOG_TAG, "TgLock отпущен.");
+            Log.d(AppController.LOG_TAG, "TgLock отпущен. success = " + clouds.getVideoFileTicketList().size());
+            WorkManager.getInstance(getApplicationContext()).cancelUniqueWork(RecorderService.TG_QUEUE);
             return Result.success();
         }
     }
@@ -96,7 +102,7 @@ public class TgWorker extends Worker {
                 return false; // Попробуем позже
             }
         } catch (IOException e) {
-            Log.d(AppController.LOG_TAG, "Ошибка сети при отправке в TG", e);
+            Log.d(AppController.LOG_TAG, "Ошибка сети при отправке в TG");
             return false;
         }
     }

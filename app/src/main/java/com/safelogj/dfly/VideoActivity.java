@@ -105,14 +105,11 @@ public class VideoActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         mBinding = ActivityVideoBinding.inflate(getLayoutInflater());
 
-        getWindow().setFlags(
-                WindowManager.LayoutParams.FLAG_SECURE,
-                WindowManager.LayoutParams.FLAG_SECURE
-        );
-        mBinding.secureLayout.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
-        mBinding.secureLayout.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS); // Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-        initAccessibilityDelegate();
-        initSecurityMeasures();
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
+//        mBinding.secureLayout.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
+//        mBinding.secureLayout.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS); // Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+//        initAccessibilityDelegate();
+//        initSecurityMeasures();
 
         setContentView(mBinding.getRoot());
         ViewCompat.setOnApplyWindowInsetsListener(mBinding.inner, (v, insets) -> {
@@ -421,7 +418,7 @@ public class VideoActivity extends AppCompatActivity {
             view.setAccessibilityDataSensitive(View.ACCESSIBILITY_DATA_SENSITIVE_YES);
         }
         // 3. Убираем подсказки автозаполнения на уровне самого поля
-        view.setAutofillHints(""); // Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+        view.setAutofillHints(AppController.EMPTY_STRING); // Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
 
     }
 }

@@ -47,6 +47,7 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -90,6 +91,7 @@ public class AppController extends Application implements CameraXConfig.Provider
     private static final int GCM_TAG_LENGTH = 16;
     private static final String TRANSFORMATION = "AES/GCM/NoPadding";
     private final ScheduledExecutorService saveFileExecutor = Executors.newSingleThreadScheduledExecutor();
+    private final CountDownLatch readTicketsLatch = new CountDownLatch(1);
     @NonNull
     private final Clouds savedClouds = new Clouds();
     private WeakReference<Activity> currentActivityRef;
@@ -166,6 +168,15 @@ public class AppController extends Application implements CameraXConfig.Provider
 //                .fromConfig(Camera2Config.defaultConfig())
 //                .setMinimumLoggingLevel(Log.ERROR) // Меньше мусора в логах
 //                .build();
+    }
+
+    public boolean isTicketsReady() {
+        try {
+           return readTicketsLatch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
     }
 
     public void writeCloudsEncrypted() {
@@ -341,6 +352,7 @@ public class AppController extends Application implements CameraXConfig.Provider
 
             if (!ticketsListFile.exists()) {
                 Log.d(LOG_TAG, "Tickets file not found.");
+                readTicketsLatch.countDown();
                 return;
             }
 
@@ -369,6 +381,8 @@ public class AppController extends Application implements CameraXConfig.Provider
 
             } catch (Exception e) {
                 Log.d(LOG_TAG, "Ошибка потокового чтения JSON: ", e);
+            } finally {
+                readTicketsLatch.countDown();
             }
         });
     }
